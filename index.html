@@ -111,8 +111,13 @@
       cursor: pointer; font-size: 18px;
       box-shadow: var(--shadow-sm);
       transition: transform 0.1s;
+      font-weight: 600;
+      letter-spacing: -0.02em;
+      padding: 0;
     }
     .icon-btn:active { transform: scale(0.92); }
+    /* 文字ボタン用フォントサイズ */
+    #btn-radius { font-size: 11px; }
     .icon-btn.active {
       background: var(--accent);
       color: #fff;
@@ -493,6 +498,87 @@
       font-size: 14px;
     }
 
+    /* === リストタブ === */
+    .list-tabs {
+      display: flex;
+      gap: 4px;
+      padding: 4px;
+      margin: 0 12px 12px;
+      background: var(--border);
+      border-radius: 10px;
+    }
+    .list-tab {
+      flex: 1;
+      padding: 8px 12px;
+      background: transparent;
+      border: none;
+      border-radius: 8px;
+      color: var(--text-dim);
+      font-size: 13px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: background 0.15s, color 0.15s;
+    }
+    .list-tab.active {
+      background: var(--surface-overlay);
+      color: var(--text);
+      box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+    }
+
+    /* === お気に入りピン === */
+    .vm-pin.fav {
+      box-shadow: 0 0 0 2.5px #ffd60a, 0 3px 10px rgba(0,0,0,0.35), 0 1px 2px rgba(0,0,0,0.2);
+    }
+    .fav-star {
+      position: absolute;
+      bottom: -3px; right: -3px;
+      width: 14px; height: 14px;
+      border-radius: 50%;
+      background: #ffd60a;
+      color: #fff;
+      font-size: 8px;
+      font-weight: 700;
+      display: flex; align-items: center; justify-content: center;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.3);
+      border: 1.5px solid var(--pin-border);
+    }
+
+    /* === ポップアップのアクションボタン群 === */
+    .popup-actions {
+      display: flex;
+      gap: 6px;
+      margin-top: 10px;
+    }
+    .popup-actions .popup-nav-btn {
+      flex: 1;
+      margin-top: 0;
+    }
+    .popup-action-btn {
+      flex-shrink: 0;
+      width: 38px; height: 38px;
+      background: var(--border);
+      color: var(--text);
+      border: none;
+      border-radius: 10px;
+      font-size: 16px;
+      cursor: pointer;
+      display: flex; align-items: center; justify-content: center;
+      transition: background 0.15s, transform 0.1s;
+    }
+    .popup-action-btn:active { transform: scale(0.92); }
+    .popup-action-btn.fav-on {
+      background: #ffd60a;
+      color: #1d1d1f;
+    }
+
+    /* お気に入りリスト項目の小さな星 */
+    .list-item-fav {
+      flex-shrink: 0;
+      color: #ffd60a;
+      font-size: 14px;
+      margin-right: 2px;
+    }
+
     /* === クラスタリング === */
     .marker-cluster-small,
     .marker-cluster-medium,
@@ -535,6 +621,7 @@
       <div class="pill" id="count-pill">
         <span class="count-num" id="count">準備中</span>
       </div>
+      <button class="icon-btn" id="btn-radius" aria-label="検索範囲">1km</button>
       <button class="icon-btn" id="btn-filter" aria-label="フィルター">🥤</button>
       <button class="icon-btn" id="btn-compass" aria-label="向きを表示">🧭</button>
       <button class="icon-btn" id="btn-theme" aria-label="テーマ切替">
@@ -583,10 +670,36 @@
   <div class="sheet sheet-list" id="list-sheet">
     <div class="sheet-handle"></div>
     <div class="list-header">
-      <div class="sheet-title list-title">近くの自販機</div>
+      <div class="sheet-title list-title" id="list-title">近くの自販機</div>
       <div class="list-count" id="list-count"></div>
     </div>
+    <div class="list-tabs">
+      <button class="list-tab active" data-tab="nearby">近く</button>
+      <button class="list-tab" data-tab="favorites">⭐ お気に入り</button>
+    </div>
     <div class="list-body" id="list-body"></div>
+  </div>
+
+  <!-- 範囲選択シート -->
+  <div class="sheet-backdrop" id="radius-backdrop"></div>
+  <div class="sheet" id="radius-sheet">
+    <div class="sheet-handle"></div>
+    <div class="sheet-title">検索範囲</div>
+    <button class="theme-option" data-radius="500">
+      <div class="opt-icon" style="background:var(--accent);color:#fff;font-size:11px;font-weight:700;">500</div>
+      <div class="opt-label">500m（徒歩6分圏）</div>
+      <div class="opt-check">✓</div>
+    </button>
+    <button class="theme-option" data-radius="1000">
+      <div class="opt-icon" style="background:var(--accent);color:#fff;font-size:11px;font-weight:700;">1k</div>
+      <div class="opt-label">1km（徒歩12分圏）</div>
+      <div class="opt-check">✓</div>
+    </button>
+    <button class="theme-option" data-radius="2000">
+      <div class="opt-icon" style="background:var(--accent);color:#fff;font-size:11px;font-weight:700;">2k</div>
+      <div class="opt-label">2km（徒歩25分圏）</div>
+      <div class="opt-check">✓</div>
+    </button>
   </div>
 
   <!-- テーマシート -->
@@ -727,11 +840,101 @@
       showStatus(filterDrinkOnly ? '飲食のみ表示' : '全種類を表示');
     });
 
+    // === 検索範囲 ===
+    const RADIUS_KEY = 'vendimap-radius';
+    let SEARCH_RADIUS_M = Number(localStorage.getItem(RADIUS_KEY)) || 1000;
+    const btnRadius = document.getElementById('btn-radius');
+    const radiusSheet = document.getElementById('radius-sheet');
+    const radiusBackdrop = document.getElementById('radius-backdrop');
+
+    function radiusLabel(m) {
+      return m >= 1000 ? `${m/1000}km` : `${m}m`;
+    }
+    function applyRadiusUI() {
+      btnRadius.textContent = radiusLabel(SEARCH_RADIUS_M);
+      document.querySelectorAll('[data-radius]').forEach(opt => {
+        opt.classList.toggle('active', Number(opt.dataset.radius) === SEARCH_RADIUS_M);
+      });
+    }
+    applyRadiusUI();
+
+    function openRadiusSheet() { radiusSheet.classList.add('show'); radiusBackdrop.classList.add('show'); }
+    function closeRadiusSheet() { radiusSheet.classList.remove('show'); radiusBackdrop.classList.remove('show'); }
+    btnRadius.addEventListener('click', openRadiusSheet);
+    radiusBackdrop.addEventListener('click', closeRadiusSheet);
+    document.querySelectorAll('[data-radius]').forEach(opt => {
+      opt.addEventListener('click', () => {
+        SEARCH_RADIUS_M = Number(opt.dataset.radius);
+        localStorage.setItem(RADIUS_KEY, String(SEARCH_RADIUS_M));
+        applyRadiusUI();
+        setTimeout(closeRadiusSheet, 150);
+        // 現在地が分かっていればそこから、無ければ地図中心から再検索
+        if (currentPos) {
+          triggerSearch(currentPos.lat, currentPos.lng);
+        } else {
+          triggerSearch();
+        }
+      });
+    });
+
+    // init内で代入される
+    let triggerSearch = () => {};
+
+    // === お気に入り管理 ===
+    const FAV_KEY = 'vendimap-favorites';
+    function loadFavorites() {
+      try {
+        return JSON.parse(localStorage.getItem(FAV_KEY) || '{}');
+      } catch (e) { return {}; }
+    }
+    function saveFavorites(favs) {
+      localStorage.setItem(FAV_KEY, JSON.stringify(favs));
+    }
+    function isFavorite(id) {
+      return !!loadFavorites()[id];
+    }
+    function toggleFavorite(item) {
+      const favs = loadFavorites();
+      if (favs[item.id]) {
+        delete favs[item.id];
+      } else {
+        // 必要な情報だけ保存（マーカーは保存しない）
+        favs[item.id] = {
+          id: item.id, lat: item.lat, lng: item.lng,
+          tags: item.tags, type: item.type, isDrink: item.isDrink, emoji: item.emoji,
+          savedAt: Date.now(),
+        };
+      }
+      saveFavorites(favs);
+      return !!favs[item.id];
+    }
+
+    // === シェア ===
+    async function shareVending(item) {
+      const name = item.tags.name || '自動販売機';
+      const url = `https://www.google.com/maps/search/?api=1&query=${item.lat},${item.lng}`;
+      const text = `${item.emoji} ${name}\n${url}`;
+      if (navigator.share) {
+        try {
+          await navigator.share({ title: name, text, url });
+        } catch (e) { /* キャンセル時は何もしない */ }
+      } else {
+        try {
+          await navigator.clipboard.writeText(text);
+          showStatus('クリップボードにコピーしました');
+        } catch (e) {
+          showStatus('シェアに失敗しました', 3000);
+        }
+      }
+    }
+
     // === リストシート ===
     const listSheet = document.getElementById('list-sheet');
     const listBackdrop = document.getElementById('list-backdrop');
     const listBody = document.getElementById('list-body');
     const listCountEl = document.getElementById('list-count');
+    const listTitleEl = document.getElementById('list-title');
+    let currentTab = 'nearby';  // nearby | favorites
 
     function openListSheet() {
       renderList();
@@ -744,6 +947,16 @@
     }
     document.getElementById('btn-list').addEventListener('click', openListSheet);
     listBackdrop.addEventListener('click', closeListSheet);
+
+    // タブ切替
+    document.querySelectorAll('.list-tab').forEach(t => {
+      t.addEventListener('click', () => {
+        currentTab = t.dataset.tab;
+        document.querySelectorAll('.list-tab').forEach(x => x.classList.toggle('active', x === t));
+        listTitleEl.textContent = currentTab === 'favorites' ? 'お気に入り' : '近くの自販機';
+        renderList();
+      });
+    });
 
     // === コンパス（向き） ===
     let currentHeading = null;        // 0-360 度
@@ -951,7 +1164,6 @@
       }).addTo(mapRef);
       let lastResults = [];  // 最後の検索結果（フィルター・リスト用）
       let searchCircle = null;
-      const SEARCH_RADIUS_M = 1000;
 
       function showSearchCircle(lat, lng) {
         if (searchCircle) searchCircle.remove();
@@ -976,8 +1188,9 @@
             if (meMarker) meMarker.remove();
             meMarker = L.marker([latitude, longitude], { icon: meIcon, zIndexOffset: 1000 }).addTo(mapRef);
             updateHeadingUI();
-            // 半径1kmが画面に収まる程度のズーム
-            mapRef.setView([latitude, longitude], 16);
+            // 範囲に応じたズーム: 500m→17, 1km→16, 2km→15
+            const zoom = SEARCH_RADIUS_M <= 500 ? 17 : SEARCH_RADIUS_M <= 1000 ? 16 : 15;
+            mapRef.setView([latitude, longitude], zoom);
             statusEl.classList.remove('show');
             searchVending(latitude, longitude);
           },
@@ -1040,29 +1253,23 @@
           if (r.isDrink) drinkCount++;
           if (r.isStale) staleCount++;
           const dimClass = r.isDrink ? '' : ' dim';
+          const favClass = isFavorite(r.id) ? ' fav' : '';
           const staleMark = r.isStale ? '<div class="vm-stale-mark">⚠</div>' : '';
+          const favStar = isFavorite(r.id) ? '<div class="fav-star">★</div>' : '';
           const icon = L.divIcon({
             className: '',
-            html: `<div class="vm-pin${dimClass}">${r.emoji}</div>${staleMark}`,
+            html: `<div class="vm-pin${dimClass}${favClass}">${r.emoji}</div>${staleMark}${favStar}`,
             iconSize: [32, 32], iconAnchor: [16, 16],
           });
           const marker = L.marker([r.lat, r.lng], { icon });
           marker.bindPopup(buildPopup(r));
-          marker.on('popupopen', () => {
-            const btn = document.getElementById(`nav-${r.id}`);
-            if (btn) {
-              btn.addEventListener('click', () => {
-                openNavigation(r.lat, r.lng, r.tags.name || '自動販売機');
-              });
-            }
-          });
-          // リスト→地図ジャンプ用にIDで参照できるようにマーカーを保持
+          marker.on('popupopen', () => attachPopupHandlers(r));
           r._marker = marker;
           vendingMarkers.addLayer(marker);
         });
         countEl.textContent = `${items.length}件 · 飲食${drinkCount}`;
         const staleNote = staleCount > 0 ? ` · 古い${staleCount}` : '';
-        showStatus(`半径1km内で${items.length}件${staleNote}`);
+        showStatus(`半径${radiusLabel(SEARCH_RADIUS_M)}内で${items.length}件${staleNote}`);
       };
 
       // ポップアップのHTMLを生成
@@ -1098,6 +1305,9 @@
           const year = r.timestamp.getFullYear();
           staleWarn = `<div class="popup-stale">⚠ 現地にない可能性があります<br><span style="font-weight:400;opacity:0.85;">${year}年から情報が更新されていません</span></div>`;
         }
+        const fav = isFavorite(r.id);
+        const favBtnClass = fav ? ' fav-on' : '';
+        const favBtnIcon = fav ? '★' : '☆';
         return `
           <div class="popup-title">${r.emoji} ${name}</div>
           ${distanceLabel}
@@ -1107,25 +1317,71 @@
           ${tags.operator ? `<div class="popup-row"><strong>運営</strong>: ${tags.operator}</div>` : ''}
           ${payments.length ? `<div class="popup-row"><strong>支払</strong>: ${payments.join(' / ')}</div>` : ''}
           ${staleWarn}
-          <button class="popup-nav-btn" id="nav-${r.id}" data-lat="${r.lat}" data-lng="${r.lng}">
-            <span>🧭</span><span>ここへ移動</span>
-          </button>
+          <div class="popup-actions">
+            <button class="popup-nav-btn" id="nav-${r.id}">
+              <span>🧭</span><span>ここへ移動</span>
+            </button>
+            <button class="popup-action-btn${favBtnClass}" id="fav-${r.id}" aria-label="お気に入り">${favBtnIcon}</button>
+            <button class="popup-action-btn" id="share-${r.id}" aria-label="シェア">📤</button>
+          </div>
         `;
+      }
+
+      // ポップアップが開いた時に各ボタンのリスナーを取り付け
+      function attachPopupHandlers(r) {
+        const navBtn = document.getElementById(`nav-${r.id}`);
+        if (navBtn) {
+          navBtn.addEventListener('click', () => {
+            openNavigation(r.lat, r.lng, r.tags.name || '自動販売機');
+          });
+        }
+        const favBtn = document.getElementById(`fav-${r.id}`);
+        if (favBtn) {
+          favBtn.addEventListener('click', () => {
+            const nowFav = toggleFavorite(r);
+            favBtn.textContent = nowFav ? '★' : '☆';
+            favBtn.classList.toggle('fav-on', nowFav);
+            showStatus(nowFav ? 'お気に入りに追加' : 'お気に入りから削除');
+            // ピンの見た目を更新
+            renderMarkers();
+            // リストが開いていれば更新
+            if (listSheet.classList.contains('show')) renderList();
+          });
+        }
+        const shareBtn = document.getElementById(`share-${r.id}`);
+        if (shareBtn) {
+          shareBtn.addEventListener('click', () => shareVending(r));
+        }
       }
 
       // リストシートに描画
       renderList = function () {
-        const items = filteredResults().slice();
-        // 距離順ソート（現在地があれば）
+        let items;
+        if (currentTab === 'favorites') {
+          // お気に入りタブ: localStorageから読み込み
+          const favs = loadFavorites();
+          items = Object.values(favs);
+          // 最近お気に入りに追加した順
+          items.sort((a, b) => (b.savedAt || 0) - (a.savedAt || 0));
+        } else {
+          items = filteredResults().slice();
+        }
+        // 距離を計算（現在地があれば）
         if (currentPos) {
           items.forEach(r => {
             r._distance = distanceMeters(currentPos.lat, currentPos.lng, r.lat, r.lng);
           });
-          items.sort((a, b) => a._distance - b._distance);
+          // 近くタブは距離順
+          if (currentTab === 'nearby') {
+            items.sort((a, b) => a._distance - b._distance);
+          }
         }
         listCountEl.textContent = `${items.length}件`;
         if (items.length === 0) {
-          listBody.innerHTML = '<div class="list-empty">該当する自販機がありません</div>';
+          const msg = currentTab === 'favorites'
+            ? '⭐ お気に入りはまだありません<br><span style="font-size:12px;opacity:0.8;">ピンをタップして★を押すと保存できます</span>'
+            : '該当する自販機がありません';
+          listBody.innerHTML = `<div class="list-empty">${msg}</div>`;
           return;
         }
         const html = items.map(r => {
@@ -1134,11 +1390,12 @@
           const distLabel = r._distance != null ? formatDistance(r._distance) : '';
           const dimClass = r.isDrink ? '' : ' dim';
           const staleDot = r.isStale ? '<div class="stale-dot">⚠</div>' : '';
+          const favStar = (currentTab === 'nearby' && isFavorite(r.id)) ? '<span class="list-item-fav">★</span>' : '';
           return `
             <button class="list-item" data-id="${r.id}">
               <div class="list-item-icon${dimClass}">${r.emoji}${staleDot}</div>
               <div class="list-item-main">
-                <div class="list-item-name">${name}</div>
+                <div class="list-item-name">${favStar}${name}</div>
                 <div class="list-item-sub">${typeLabel}${r._distance != null ? ' · ' + formatWalkTime(r._distance) : ''}</div>
               </div>
               ${distLabel ? `<div class="list-item-distance">${distLabel}</div>` : ''}
@@ -1150,11 +1407,18 @@
         listBody.querySelectorAll('.list-item').forEach(el => {
           el.addEventListener('click', () => {
             const id = Number(el.dataset.id);
-            const r = lastResults.find(x => x.id === id);
+            // 近くタブはlastResultsから、お気に入りタブはfavoritesから
+            const source = currentTab === 'favorites' ? Object.values(loadFavorites()) : lastResults;
+            const r = source.find(x => x.id === id);
             if (!r) return;
             closeListSheet();
             mapRef.setView([r.lat, r.lng], Math.max(mapRef.getZoom(), 17));
-            // クラスター展開後にポップアップを開く
+            // お気に入りタブの場合、現在のマーカー集合に居なければ再検索
+            if (currentTab === 'favorites' && !r._marker) {
+              // 現在の地図中心から再検索（お気に入りピンが範囲外にある場合）
+              setTimeout(() => triggerSearch(r.lat, r.lng), 200);
+              return;
+            }
             setTimeout(() => {
               if (r._marker) {
                 vendingMarkers.zoomToShowLayer(r._marker, () => r._marker.openPopup());
@@ -1166,6 +1430,9 @@
 
       document.getElementById('btn-locate').addEventListener('click', locate);
       document.getElementById('btn-search').addEventListener('click', () => searchVending());
+
+      // 範囲選択シートからの再検索用
+      triggerSearch = searchVending;
 
       locate();
     }
