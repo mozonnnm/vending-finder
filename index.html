@@ -8,7 +8,7 @@
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css" />
   <style>
     :root, [data-theme="light"] {
-      --bg: #f5f5f7;
+      --bg: #e8eaef;
       --surface: rgba(255, 255, 255, 0.85);
       --surface-strong: rgba(255, 255, 255, 0.96);
       --surface-overlay: rgba(255, 255, 255, 1);
@@ -23,7 +23,7 @@
       --pin-dim-bg: #c7c7cc;
       --shadow-sm: 0 2px 8px rgba(0, 0, 0, 0.06);
       --shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
-      --tile-filter: saturate(0.85) brightness(1.02);
+      --tile-filter: saturate(0.9) brightness(0.98) contrast(1.05);
     }
     [data-theme="dark"] {
       --bg: #000;
@@ -424,14 +424,14 @@
       if (mapRef && tileLayerLight && tileLayerDark) {
         if (actual === 'dark') {
           if (mapRef.hasLayer(tileLayerLight)) mapRef.removeLayer(tileLayerLight);
-          if (mapRef.hasLayer(labelLayerLight)) mapRef.removeLayer(labelLayerLight);
+          if (labelLayerLight && mapRef.hasLayer(labelLayerLight)) mapRef.removeLayer(labelLayerLight);
           if (!mapRef.hasLayer(tileLayerDark)) tileLayerDark.addTo(mapRef);
-          if (!mapRef.hasLayer(labelLayerDark)) labelLayerDark.addTo(mapRef);
+          if (labelLayerDark && !mapRef.hasLayer(labelLayerDark)) labelLayerDark.addTo(mapRef);
         } else {
           if (mapRef.hasLayer(tileLayerDark)) mapRef.removeLayer(tileLayerDark);
-          if (mapRef.hasLayer(labelLayerDark)) mapRef.removeLayer(labelLayerDark);
+          if (labelLayerDark && mapRef.hasLayer(labelLayerDark)) mapRef.removeLayer(labelLayerDark);
           if (!mapRef.hasLayer(tileLayerLight)) tileLayerLight.addTo(mapRef);
-          if (!mapRef.hasLayer(labelLayerLight)) labelLayerLight.addTo(mapRef);
+          if (labelLayerLight && !mapRef.hasLayer(labelLayerLight)) labelLayerLight.addTo(mapRef);
         }
       }
 
@@ -571,12 +571,10 @@
       mapRef = L.map('map', { zoomControl: false, attributionControl: true })
         .setView([35.6812, 139.7671], 16);
 
-      tileLayerLight = L.tileLayer('https://{s}.basemaps.cartocdn.com/light_nolabels/{z}/{x}/{y}{r}.png', {
+      tileLayerLight = L.tileLayer('https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png', {
         attribution: '© OpenStreetMap © CARTO', subdomains: 'abcd', maxZoom: 20,
       });
-      labelLayerLight = L.tileLayer('https://{s}.basemaps.cartocdn.com/light_only_labels/{z}/{x}/{y}{r}.png', {
-        attribution: '', subdomains: 'abcd', maxZoom: 20,
-      });
+      labelLayerLight = null;
       tileLayerDark = L.tileLayer('https://{s}.basemaps.cartocdn.com/rastertiles/voyager_nolabels/{z}/{x}/{y}{r}.png', {
         attribution: '© OpenStreetMap © CARTO', subdomains: 'abcd', maxZoom: 20,
       });
@@ -585,8 +583,13 @@
       });
 
       const actual = resolveTheme(getStoredTheme());
-      if (actual === 'dark') { tileLayerDark.addTo(mapRef); labelLayerDark.addTo(mapRef); }
-      else { tileLayerLight.addTo(mapRef); labelLayerLight.addTo(mapRef); }
+      if (actual === 'dark') {
+        tileLayerDark.addTo(mapRef);
+        if (labelLayerDark) labelLayerDark.addTo(mapRef);
+      } else {
+        tileLayerLight.addTo(mapRef);
+        if (labelLayerLight) labelLayerLight.addTo(mapRef);
+      }
 
       // 現在地ピンのHTML（コーン+ドット）
       const meHTML = `
