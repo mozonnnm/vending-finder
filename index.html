@@ -41,7 +41,7 @@
       --pin-dim-bg: #48484a;
       --shadow-sm: 0 2px 8px rgba(0, 0, 0, 0.3);
       --shadow: 0 4px 20px rgba(0, 0, 0, 0.4);
-      --tile-filter: hue-rotate(190deg) saturate(1.4) brightness(0.75) contrast(1.1);
+      --tile-filter: hue-rotate(180deg) saturate(1.15) brightness(0.55) contrast(1.05);
     }
 
     /* ダークモード: 地図の上に青いラジアルグラデを重ねて深みを出す */
@@ -50,8 +50,8 @@
       position: absolute; inset: 0;
       pointer-events: none;
       background:
-        radial-gradient(ellipse 80% 60% at 50% 30%, rgba(30, 80, 180, 0.18) 0%, transparent 70%),
-        linear-gradient(180deg, rgba(10, 25, 60, 0.12) 0%, transparent 25%, transparent 75%, rgba(0, 8, 30, 0.35) 100%);
+        radial-gradient(ellipse 80% 60% at 50% 30%, rgba(40, 90, 200, 0.12) 0%, transparent 70%),
+        linear-gradient(180deg, rgba(10, 25, 60, 0.08) 0%, transparent 30%, transparent 80%, rgba(0, 8, 30, 0.2) 100%);
       z-index: 400;
       mix-blend-mode: screen;
     }
