@@ -26,10 +26,10 @@
       --tile-filter: none;
     }
     [data-theme="dark"] {
-      --bg: #1c1c1e;
-      --surface: rgba(44, 44, 46, 0.85);
-      --surface-strong: rgba(58, 58, 60, 0.96);
-      --surface-overlay: rgba(58, 58, 60, 1);
+      --bg: #1a1d24;
+      --surface: rgba(38, 42, 51, 0.85);
+      --surface-strong: rgba(48, 53, 64, 0.96);
+      --surface-overlay: rgba(48, 53, 64, 1);
       --border: rgba(255, 255, 255, 0.1);
       --border-strong: rgba(255, 255, 255, 0.16);
       --text: #f5f5f7;
@@ -495,7 +495,7 @@
     function applyTheme(pref) {
       const actual = resolveTheme(pref);
       document.documentElement.setAttribute('data-theme', actual);
-      themeColorMeta.setAttribute('content', actual === 'dark' ? '#1c1c1e' : '#f2f2f7');
+      themeColorMeta.setAttribute('content', actual === 'dark' ? '#1a1d24' : '#f2f2f7');
       themeIconEl.textContent = pref === 'auto' ? '◐' : (actual === 'dark' ? '🌙' : '☀️');
 
       if (mapRef && tileLayerLight && tileLayerDark) {
@@ -707,7 +707,7 @@
         crossOrigin: true,
       });
       labelLayerLight = null;
-      tileLayerDark = L.tileLayer(`https://api.maptiler.com/maps/backdrop-dark/{z}/{x}/{y}.png?key=${MAPTILER_KEY}`, {
+      tileLayerDark = L.tileLayer(`https://api.maptiler.com/maps/streets-v2-dark/{z}/{x}/{y}.png?key=${MAPTILER_KEY}`, {
         attribution: '© MapTiler © OpenStreetMap',
         maxZoom: 20,
         tileSize: 512,
