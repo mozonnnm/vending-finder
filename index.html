@@ -8,12 +8,12 @@
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css" />
   <style>
     :root, [data-theme="light"] {
-      --bg: #e8eaef;
-      --surface: rgba(255, 255, 255, 0.85);
+      --bg: #f2f2f7;
+      --surface: rgba(255, 255, 255, 0.88);
       --surface-strong: rgba(255, 255, 255, 0.96);
       --surface-overlay: rgba(255, 255, 255, 1);
-      --border: rgba(0, 0, 0, 0.06);
-      --border-strong: rgba(0, 0, 0, 0.1);
+      --border: rgba(0, 0, 0, 0.08);
+      --border-strong: rgba(0, 0, 0, 0.12);
       --text: #1d1d1f;
       --text-dim: #6e6e73;
       --accent: #007aff;
@@ -21,39 +21,27 @@
       --vending: #ff453a;
       --pin-border: #fff;
       --pin-dim-bg: #c7c7cc;
-      --shadow-sm: 0 2px 8px rgba(0, 0, 0, 0.06);
-      --shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
-      --tile-filter: saturate(0.9) brightness(0.98) contrast(1.05);
+      --shadow-sm: 0 2px 8px rgba(0, 0, 0, 0.08);
+      --shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+      --tile-filter: none;
     }
     [data-theme="dark"] {
-      --bg: #000;
-      --surface: rgba(28, 28, 30, 0.78);
-      --surface-strong: rgba(28, 28, 30, 0.94);
-      --surface-overlay: rgba(44, 44, 46, 1);
-      --border: rgba(255, 255, 255, 0.08);
-      --border-strong: rgba(255, 255, 255, 0.14);
+      --bg: #1c1c1e;
+      --surface: rgba(44, 44, 46, 0.85);
+      --surface-strong: rgba(58, 58, 60, 0.96);
+      --surface-overlay: rgba(58, 58, 60, 1);
+      --border: rgba(255, 255, 255, 0.1);
+      --border-strong: rgba(255, 255, 255, 0.16);
       --text: #f5f5f7;
-      --text-dim: #98989d;
+      --text-dim: #a1a1a6;
       --accent: #0a84ff;
       --accent-strong: #0066cc;
       --vending: #ff6961;
-      --pin-border: #1c1c1e;
+      --pin-border: #f5f5f7;
       --pin-dim-bg: #48484a;
-      --shadow-sm: 0 2px 8px rgba(0, 0, 0, 0.3);
-      --shadow: 0 4px 20px rgba(0, 0, 0, 0.4);
-      --tile-filter: hue-rotate(180deg) saturate(1.15) brightness(0.55) contrast(1.05);
-    }
-
-    /* ダークモード: 地図の上に青いラジアルグラデを重ねて深みを出す */
-    [data-theme="dark"] #map::after {
-      content: '';
-      position: absolute; inset: 0;
-      pointer-events: none;
-      background:
-        radial-gradient(ellipse 80% 60% at 50% 30%, rgba(40, 90, 200, 0.12) 0%, transparent 70%),
-        linear-gradient(180deg, rgba(10, 25, 60, 0.08) 0%, transparent 30%, transparent 80%, rgba(0, 8, 30, 0.2) 100%);
-      z-index: 400;
-      mix-blend-mode: screen;
+      --shadow-sm: 0 2px 8px rgba(0, 0, 0, 0.4);
+      --shadow: 0 4px 20px rgba(0, 0, 0, 0.5);
+      --tile-filter: none;
     }
 
     * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
@@ -418,7 +406,7 @@
     function applyTheme(pref) {
       const actual = resolveTheme(pref);
       document.documentElement.setAttribute('data-theme', actual);
-      themeColorMeta.setAttribute('content', actual === 'dark' ? '#000000' : '#f5f5f7');
+      themeColorMeta.setAttribute('content', actual === 'dark' ? '#1c1c1e' : '#f2f2f7');
       themeIconEl.textContent = pref === 'auto' ? '◐' : (actual === 'dark' ? '🌙' : '☀️');
 
       if (mapRef && tileLayerLight && tileLayerDark) {
@@ -575,12 +563,10 @@
         attribution: '© OpenStreetMap © CARTO', subdomains: 'abcd', maxZoom: 18,
       });
       labelLayerLight = null;
-      tileLayerDark = L.tileLayer('https://{s}.basemaps.cartocdn.com/rastertiles/voyager_nolabels/{z}/{x}/{y}{r}.png', {
+      tileLayerDark = L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png', {
         attribution: '© OpenStreetMap © CARTO', subdomains: 'abcd', maxZoom: 18,
       });
-      labelLayerDark = L.tileLayer('https://{s}.basemaps.cartocdn.com/rastertiles/voyager_only_labels/{z}/{x}/{y}{r}.png', {
-        attribution: '', subdomains: 'abcd', maxZoom: 18,
-      });
+      labelLayerDark = null;
 
       const actual = resolveTheme(getStoredTheme());
       if (actual === 'dark') {
