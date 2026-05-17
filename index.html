@@ -177,16 +177,17 @@
       backdrop-filter: blur(20px) saturate(180%); -webkit-backdrop-filter: blur(20px) saturate(180%);
       border: 0.5px solid var(--border);
       color: var(--text);
-      padding: 13px 20px; border-radius: 999px;
-      font-size: 15px; font-weight: 600;
+      padding: 9px 16px; border-radius: 999px;
+      font-size: 13px; font-weight: 600;
       cursor: pointer;
-      display: flex; align-items: center; gap: 6px;
+      display: flex; align-items: center; gap: 5px;
       transition: transform 0.1s, background 0.15s;
       box-shadow: var(--shadow);
       letter-spacing: -0.01em;
+      white-space: nowrap;
     }
     .btn:active { transform: scale(0.96); }
-    .btn-icon { font-size: 15px; }
+    .btn-icon { font-size: 13px; }
     .btn-primary {
       background: var(--accent); color: #fff; border-color: transparent;
     }
@@ -766,8 +767,8 @@
             if (meMarker) meMarker.remove();
             meMarker = L.marker([latitude, longitude], { icon: meIcon, zIndexOffset: 1000 }).addTo(mapRef);
             updateHeadingUI();
-            // 半径1kmが画面に収まるズーム（15）にして移動
-            mapRef.setView([latitude, longitude], 15);
+            // 半径1kmが画面に収まる程度のズーム
+            mapRef.setView([latitude, longitude], 16);
             statusEl.classList.remove('show');
             searchVending(latitude, longitude);
           },
@@ -797,7 +798,7 @@
           vendingMarkers.clearLayers();
           let drinkCount = 0;
           let staleCount = 0;
-          const STALE_YEARS = 5;
+          const STALE_YEARS = 8;
           data.elements.forEach((el) => {
             const tags = el.tags || {};
             const type = tags.vending || 'unknown';
