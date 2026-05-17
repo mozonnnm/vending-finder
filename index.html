@@ -714,6 +714,10 @@
     }
     applyFilterButtonUI();
 
+    // init内で実体が代入される（スコープ越え用のホルダー）
+    let renderMarkers = () => {};
+    let renderList = () => {};
+
     btnFilter.addEventListener('click', () => {
       filterDrinkOnly = !filterDrinkOnly;
       localStorage.setItem(FILTER_KEY, String(filterDrinkOnly));
@@ -1028,7 +1032,7 @@
       }
 
       // 地図上にマーカーを描画
-      function renderMarkers() {
+      renderMarkers = function () {
         vendingMarkers.clearLayers();
         const items = filteredResults();
         let drinkCount = 0, staleCount = 0;
@@ -1059,7 +1063,7 @@
         countEl.textContent = `${items.length}件 · 飲食${drinkCount}`;
         const staleNote = staleCount > 0 ? ` · 古い${staleCount}` : '';
         showStatus(`半径1km内で${items.length}件${staleNote}`);
-      }
+      };
 
       // ポップアップのHTMLを生成
       function buildPopup(r) {
@@ -1110,7 +1114,7 @@
       }
 
       // リストシートに描画
-      function renderList() {
+      renderList = function () {
         const items = filteredResults().slice();
         // 距離順ソート（現在地があれば）
         if (currentPos) {
@@ -1158,7 +1162,7 @@
             }, 250);
           });
         });
-      }
+      };
 
       document.getElementById('btn-locate').addEventListener('click', locate);
       document.getElementById('btn-search').addEventListener('click', () => searchVending());
