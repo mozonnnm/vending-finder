@@ -2,74 +2,380 @@
 <html lang="ja">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
-  <title>自販機マップ</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" />
+  <meta name="theme-color" content="#f5f5f7" id="theme-color-meta" />
+  <title>VendiMap</title>
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css" />
   <style>
-    * { box-sizing: border-box; margin: 0; padding: 0; }
-    html, body { height: 100%; width: 100%; font-family: -apple-system, BlinkMacSystemFont, "Hiragino Sans", sans-serif; }
-    #map { height: 100vh; width: 100vw; background: #e5e7eb; }
-
-    .top-bar {
-      position: absolute; top: 0; left: 0; right: 0; z-index: 1000;
-      background: rgba(255, 255, 255, 0.95);
-      padding: 12px 16px;
-      box-shadow: 0 2px 8px rgba(0,0,0,0.1);
-      display: flex; justify-content: space-between; align-items: center;
+    /* === ライトモード === */
+    :root, [data-theme="light"] {
+      --bg: #f5f5f7;
+      --surface: rgba(255, 255, 255, 0.85);
+      --surface-strong: rgba(255, 255, 255, 0.96);
+      --surface-overlay: rgba(255, 255, 255, 1);
+      --border: rgba(0, 0, 0, 0.06);
+      --border-strong: rgba(0, 0, 0, 0.1);
+      --text: #1d1d1f;
+      --text-dim: #6e6e73;
+      --accent: #007aff;
+      --accent-strong: #0064d8;
+      --vending: #ff453a;
+      --pin-border: #fff;
+      --pin-dim-bg: #c7c7cc;
+      --shadow-sm: 0 2px 8px rgba(0, 0, 0, 0.06);
+      --shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+      --tile-filter: saturate(0.85) brightness(1.02);
     }
-    .top-bar h1 { font-size: 16px; font-weight: 600; }
-    .count { font-size: 13px; color: #666; }
 
+    /* === ダークモード === */
+    [data-theme="dark"] {
+      --bg: #000;
+      --surface: rgba(28, 28, 30, 0.78);
+      --surface-strong: rgba(28, 28, 30, 0.94);
+      --surface-overlay: rgba(44, 44, 46, 1);
+      --border: rgba(255, 255, 255, 0.08);
+      --border-strong: rgba(255, 255, 255, 0.14);
+      --text: #f5f5f7;
+      --text-dim: #98989d;
+      --accent: #0a84ff;
+      --accent-strong: #0066cc;
+      --vending: #ff6961;
+      --pin-border: #1c1c1e;
+      --pin-dim-bg: #48484a;
+      --shadow-sm: 0 2px 8px rgba(0, 0, 0, 0.3);
+      --shadow: 0 4px 20px rgba(0, 0, 0, 0.4);
+      --tile-filter: saturate(0.9) brightness(0.95);
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
+    html, body {
+      height: 100%; width: 100%;
+      font-family: -apple-system, BlinkMacSystemFont, "SF Pro Text", "Hiragino Sans", sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      overflow: hidden;
+      -webkit-font-smoothing: antialiased;
+      transition: background 0.3s;
+    }
+    #map { height: 100vh; width: 100vw; background: var(--bg); }
+
+    .leaflet-tile-pane { filter: var(--tile-filter); }
+
+    .leaflet-control-zoom { display: none !important; }
+    .leaflet-control-attribution {
+      background: var(--surface) !important;
+      color: var(--text-dim) !important;
+      font-size: 10px !important;
+      backdrop-filter: blur(10px);
+      -webkit-backdrop-filter: blur(10px);
+      padding: 2px 8px !important;
+      border-radius: 8px 0 0 0 !important;
+    }
+    .leaflet-control-attribution a { color: var(--text-dim) !important; }
+
+    /* === ヘッダー === */
+    .header {
+      position: absolute; top: 0; left: 0; right: 0; z-index: 1000;
+      padding: max(env(safe-area-inset-top), 12px) 14px 12px;
+      display: flex; justify-content: space-between; align-items: center;
+      gap: 8px;
+      pointer-events: none;
+    }
+    .brand {
+      pointer-events: auto;
+      display: flex; align-items: center; gap: 8px;
+      background: var(--surface);
+      backdrop-filter: blur(20px) saturate(180%);
+      -webkit-backdrop-filter: blur(20px) saturate(180%);
+      padding: 8px 14px 8px 8px;
+      border-radius: 999px;
+      box-shadow: var(--shadow-sm);
+      border: 0.5px solid var(--border);
+    }
+    .brand-mark {
+      width: 26px; height: 26px;
+      border-radius: 50%;
+      background: var(--vending);
+      display: flex; align-items: center; justify-content: center;
+      font-size: 14px;
+    }
+    .brand-text {
+      font-size: 15px; font-weight: 600; letter-spacing: -0.01em;
+    }
+    .header-right {
+      pointer-events: auto;
+      display: flex; align-items: center; gap: 8px;
+    }
+    .pill {
+      background: var(--surface);
+      backdrop-filter: blur(20px) saturate(180%);
+      -webkit-backdrop-filter: blur(20px) saturate(180%);
+      border: 0.5px solid var(--border);
+      padding: 8px 14px;
+      border-radius: 999px;
+      font-size: 13px;
+      color: var(--text);
+      font-weight: 600;
+      box-shadow: var(--shadow-sm);
+    }
+    .pill .count-num { color: var(--vending); }
+    .icon-btn {
+      width: 40px; height: 40px;
+      border-radius: 50%;
+      background: var(--surface);
+      backdrop-filter: blur(20px) saturate(180%);
+      -webkit-backdrop-filter: blur(20px) saturate(180%);
+      border: 0.5px solid var(--border);
+      color: var(--text);
+      display: flex; align-items: center; justify-content: center;
+      cursor: pointer;
+      font-size: 18px;
+      box-shadow: var(--shadow-sm);
+      transition: transform 0.1s;
+    }
+    .icon-btn:active { transform: scale(0.92); }
+
+    /* === テーマ選択シート === */
+    .sheet-backdrop {
+      position: fixed; inset: 0; z-index: 2000;
+      background: rgba(0, 0, 0, 0.3);
+      opacity: 0; pointer-events: none;
+      transition: opacity 0.25s;
+    }
+    .sheet-backdrop.show { opacity: 1; pointer-events: auto; }
+    .sheet {
+      position: fixed; bottom: 0; left: 0; right: 0; z-index: 2001;
+      background: var(--surface-overlay);
+      border-radius: 20px 20px 0 0;
+      padding: 8px 12px max(env(safe-area-inset-bottom), 20px);
+      transform: translateY(100%);
+      transition: transform 0.3s cubic-bezier(0.32, 0.72, 0, 1);
+      box-shadow: 0 -8px 32px rgba(0,0,0,0.15);
+    }
+    .sheet.show { transform: translateY(0); }
+    .sheet-handle {
+      width: 36px; height: 5px; border-radius: 999px;
+      background: var(--border-strong);
+      margin: 8px auto 12px;
+    }
+    .sheet-title {
+      font-size: 17px; font-weight: 700; text-align: center;
+      padding: 4px 0 12px;
+      letter-spacing: -0.01em;
+    }
+    .theme-option {
+      width: 100%;
+      display: flex; align-items: center; gap: 14px;
+      padding: 14px 16px;
+      background: transparent;
+      border: none;
+      color: var(--text);
+      font-size: 15px;
+      font-weight: 500;
+      text-align: left;
+      cursor: pointer;
+      border-radius: 12px;
+      transition: background 0.15s;
+    }
+    .theme-option:active { background: var(--border); }
+    .theme-option .opt-icon {
+      width: 32px; height: 32px;
+      border-radius: 8px;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 16px;
+    }
+    .theme-option .opt-icon.auto { background: linear-gradient(135deg, #fff 50%, #1c1c1e 50%); color: transparent; }
+    .theme-option .opt-icon.light { background: #fff; border: 0.5px solid var(--border-strong); }
+    .theme-option .opt-icon.dark { background: #1c1c1e; }
+    .theme-option .opt-label { flex: 1; }
+    .theme-option .opt-check {
+      color: var(--accent); font-size: 18px;
+      opacity: 0;
+    }
+    .theme-option.active .opt-check { opacity: 1; }
+
+    /* === 下部のコントロール === */
     .controls {
-      position: absolute; bottom: 24px; left: 50%; transform: translateX(-50%);
+      position: absolute; bottom: max(env(safe-area-inset-bottom), 24px); left: 50%; transform: translateX(-50%);
       z-index: 1000; display: flex; gap: 8px;
     }
     .btn {
-      background: #fff; border: none;
-      padding: 12px 20px; border-radius: 24px;
-      font-size: 14px; font-weight: 500;
-      box-shadow: 0 2px 12px rgba(0,0,0,0.15);
+      background: var(--surface-strong);
+      backdrop-filter: blur(20px) saturate(180%);
+      -webkit-backdrop-filter: blur(20px) saturate(180%);
+      border: 0.5px solid var(--border);
+      color: var(--text);
+      padding: 13px 20px; border-radius: 999px;
+      font-size: 15px; font-weight: 600;
       cursor: pointer;
+      display: flex; align-items: center; gap: 6px;
+      transition: transform 0.1s, background 0.15s;
+      box-shadow: var(--shadow);
+      letter-spacing: -0.01em;
     }
-    .btn:active { background: #f0f0f0; }
-    .btn-primary { background: #2563eb; color: #fff; }
-    .btn-primary:active { background: #1e40af; }
+    .btn:active { transform: scale(0.96); }
+    .btn-icon { font-size: 15px; }
+    .btn-primary {
+      background: var(--accent);
+      color: #fff;
+      border-color: transparent;
+    }
+    .btn-primary:active { background: var(--accent-strong); }
 
+    /* === ステータストースト === */
     .status {
-      position: absolute; top: 64px; left: 50%; transform: translateX(-50%);
+      position: absolute; top: 76px; left: 50%; transform: translateX(-50%) translateY(-10px);
       z-index: 1000;
-      background: rgba(0,0,0,0.75); color: #fff;
-      padding: 8px 14px; border-radius: 16px;
+      background: var(--surface-strong);
+      backdrop-filter: blur(20px) saturate(180%);
+      -webkit-backdrop-filter: blur(20px) saturate(180%);
+      border: 0.5px solid var(--border);
+      color: var(--text);
+      padding: 10px 18px; border-radius: 999px;
       font-size: 13px;
-      opacity: 0; transition: opacity 0.3s;
+      font-weight: 500;
+      opacity: 0;
+      transition: opacity 0.3s, transform 0.3s;
       pointer-events: none;
       white-space: nowrap;
+      box-shadow: var(--shadow);
     }
-    .status.show { opacity: 1; }
+    .status.show { opacity: 1; transform: translateX(-50%) translateY(0); }
 
-    .me-icon {
-      width: 18px; height: 18px;
-      background: #2563eb; border: 3px solid #fff;
-      border-radius: 50%;
-      box-shadow: 0 0 0 2px rgba(37,99,235,0.3);
+    /* === 現在地マーカー === */
+    .me-pulse {
+      position: relative;
+      width: 16px; height: 16px;
     }
+    .me-pulse::before {
+      content: '';
+      position: absolute; inset: -6px;
+      border-radius: 50%;
+      background: var(--accent);
+      opacity: 0.25;
+      animation: mePulse 2.5s infinite ease-out;
+    }
+    .me-pulse::after {
+      content: '';
+      position: absolute; inset: 0;
+      border-radius: 50%;
+      background: var(--accent);
+      border: 3px solid var(--pin-border);
+      box-shadow: 0 0 0 0.5px rgba(0,0,0,0.1), 0 2px 6px rgba(0,0,0,0.25);
+    }
+    @keyframes mePulse { 0%{transform:scale(0.6);opacity:0.9} 100%{transform:scale(2.5);opacity:0} }
+
+    /* === 自販機ピン === */
+    .vm-pin {
+      width: 30px; height: 30px;
+      border-radius: 50%;
+      background: var(--vending);
+      border: 2.5px solid var(--pin-border);
+      display: flex; align-items: center; justify-content: center;
+      font-size: 14px;
+      line-height: 1;
+      box-shadow: 0 2px 6px rgba(0,0,0,0.25);
+    }
+    .vm-pin.dim {
+      background: var(--pin-dim-bg);
+      box-shadow: 0 1px 4px rgba(0,0,0,0.15);
+    }
+
+    /* === ポップアップ === */
+    .leaflet-popup-content-wrapper {
+      background: var(--surface-strong) !important;
+      backdrop-filter: blur(20px);
+      color: var(--text) !important;
+      border-radius: 16px !important;
+      border: 0.5px solid var(--border);
+      box-shadow: var(--shadow) !important;
+      padding: 4px !important;
+    }
+    .leaflet-popup-content { margin: 12px 14px !important; font-size: 13px; color: var(--text) !important; }
+    .leaflet-popup-tip { background: var(--surface-strong) !important; }
+    .leaflet-popup-close-button { color: var(--text-dim) !important; padding: 6px 6px 0 0 !important; }
+    .popup-title {
+      font-weight: 700; font-size: 15px; margin-bottom: 6px;
+      letter-spacing: -0.01em;
+      color: var(--text);
+    }
+    .popup-row { color: var(--text-dim); font-size: 12px; margin-top: 3px; }
+    .popup-row strong { color: var(--text); font-weight: 600; }
+
+    /* === ローディング === */
     .loading {
       position: absolute; inset: 0; z-index: 500;
       display: flex; align-items: center; justify-content: center;
-      background: #e5e7eb; color: #555; font-size: 14px;
+      background: var(--bg); color: var(--text-dim); font-size: 14px;
+      gap: 10px;
+      font-weight: 500;
     }
+    .spinner {
+      width: 16px; height: 16px;
+      border: 2px solid var(--border);
+      border-top-color: var(--accent);
+      border-radius: 50%;
+      animation: spin 0.8s linear infinite;
+    }
+    @keyframes spin { to { transform: rotate(360deg); } }
   </style>
 </head>
 <body>
-  <div class="top-bar">
-    <h1>🥤 自販機マップ</h1>
-    <span class="count" id="count">準備中…</span>
+  <div class="header">
+    <div class="brand">
+      <div class="brand-mark">🥤</div>
+      <div class="brand-text">VendiMap</div>
+    </div>
+    <div class="header-right">
+      <div class="pill" id="count-pill">
+        <span class="count-num" id="count">準備中</span>
+      </div>
+      <button class="icon-btn" id="btn-theme" aria-label="テーマ切替">
+        <span id="theme-icon">◐</span>
+      </button>
+    </div>
   </div>
-  <div id="map"><div class="loading" id="loading">地図ライブラリを読込中…</div></div>
+
+  <div id="map">
+    <div class="loading" id="loading">
+      <div class="spinner"></div>
+      <span>地図を読込中…</span>
+    </div>
+  </div>
+
   <div class="status" id="status"></div>
+
   <div class="controls">
-    <button class="btn" id="btn-locate">📍 現在地</button>
-    <button class="btn btn-primary" id="btn-search">この範囲で探す</button>
+    <button class="btn" id="btn-locate">
+      <span class="btn-icon">📍</span>
+      <span>現在地</span>
+    </button>
+    <button class="btn btn-primary" id="btn-search">
+      <span class="btn-icon">🔍</span>
+      <span>この範囲で探す</span>
+    </button>
+  </div>
+
+  <!-- テーマ選択シート -->
+  <div class="sheet-backdrop" id="sheet-backdrop"></div>
+  <div class="sheet" id="sheet">
+    <div class="sheet-handle"></div>
+    <div class="sheet-title">外観</div>
+    <button class="theme-option" data-theme-choice="auto">
+      <div class="opt-icon auto">A</div>
+      <div class="opt-label">端末の設定に合わせる</div>
+      <div class="opt-check">✓</div>
+    </button>
+    <button class="theme-option" data-theme-choice="light">
+      <div class="opt-icon light">☀️</div>
+      <div class="opt-label">ライト</div>
+      <div class="opt-check">✓</div>
+    </button>
+    <button class="theme-option" data-theme-choice="dark">
+      <div class="opt-icon dark">🌙</div>
+      <div class="opt-label">ダーク</div>
+      <div class="opt-check">✓</div>
+    </button>
   </div>
 
   <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js"></script>
@@ -77,6 +383,8 @@
     const statusEl = document.getElementById('status');
     const countEl = document.getElementById('count');
     const loadingEl = document.getElementById('loading');
+    const themeColorMeta = document.getElementById('theme-color-meta');
+    const themeIconEl = document.getElementById('theme-icon');
 
     function showStatus(msg, ms = 2000) {
       statusEl.textContent = msg;
@@ -84,23 +392,112 @@
       if (ms > 0) setTimeout(() => statusEl.classList.remove('show'), ms);
     }
 
+    // === テーマ管理 ===
+    const THEME_KEY = 'vendimap-theme';
+    const mediaDark = window.matchMedia('(prefers-color-scheme: dark)');
+    let tileLayerLight = null, tileLayerDark = null, labelLayerLight = null, labelLayerDark = null;
+    let mapRef = null;
+
+    function getStoredTheme() {
+      return localStorage.getItem(THEME_KEY) || 'auto';
+    }
+    function resolveTheme(pref) {
+      if (pref === 'auto') return mediaDark.matches ? 'dark' : 'light';
+      return pref;
+    }
+    function applyTheme(pref) {
+      const actual = resolveTheme(pref);
+      document.documentElement.setAttribute('data-theme', actual);
+      themeColorMeta.setAttribute('content', actual === 'dark' ? '#000000' : '#f5f5f7');
+      themeIconEl.textContent = pref === 'auto' ? '◐' : (actual === 'dark' ? '🌙' : '☀️');
+
+      // 地図のタイル切替
+      if (mapRef && tileLayerLight && tileLayerDark) {
+        if (actual === 'dark') {
+          if (mapRef.hasLayer(tileLayerLight)) mapRef.removeLayer(tileLayerLight);
+          if (mapRef.hasLayer(labelLayerLight)) mapRef.removeLayer(labelLayerLight);
+          if (!mapRef.hasLayer(tileLayerDark)) tileLayerDark.addTo(mapRef);
+          if (!mapRef.hasLayer(labelLayerDark)) labelLayerDark.addTo(mapRef);
+        } else {
+          if (mapRef.hasLayer(tileLayerDark)) mapRef.removeLayer(tileLayerDark);
+          if (mapRef.hasLayer(labelLayerDark)) mapRef.removeLayer(labelLayerDark);
+          if (!mapRef.hasLayer(tileLayerLight)) tileLayerLight.addTo(mapRef);
+          if (!mapRef.hasLayer(labelLayerLight)) labelLayerLight.addTo(mapRef);
+        }
+      }
+
+      // 選択状態の反映
+      document.querySelectorAll('.theme-option').forEach(opt => {
+        opt.classList.toggle('active', opt.dataset.themeChoice === pref);
+      });
+    }
+    function setTheme(pref) {
+      localStorage.setItem(THEME_KEY, pref);
+      applyTheme(pref);
+    }
+    // 端末設定の変化を監視（autoの時のみ追従）
+    mediaDark.addEventListener('change', () => {
+      if (getStoredTheme() === 'auto') applyTheme('auto');
+    });
+
+    // 初期適用（地図初期化前にCSSだけ先に当てる）
+    applyTheme(getStoredTheme());
+
+    // テーマシートの開閉
+    const sheet = document.getElementById('sheet');
+    const backdrop = document.getElementById('sheet-backdrop');
+    function openSheet() { sheet.classList.add('show'); backdrop.classList.add('show'); }
+    function closeSheet() { sheet.classList.remove('show'); backdrop.classList.remove('show'); }
+    document.getElementById('btn-theme').addEventListener('click', openSheet);
+    backdrop.addEventListener('click', closeSheet);
+    document.querySelectorAll('.theme-option').forEach(opt => {
+      opt.addEventListener('click', () => {
+        setTheme(opt.dataset.themeChoice);
+        setTimeout(closeSheet, 150);
+      });
+    });
+
     function init() {
       if (typeof L === 'undefined') {
-        loadingEl.textContent = '地図ライブラリの読込に失敗しました';
+        loadingEl.innerHTML = '<span>地図ライブラリの読込に失敗しました</span>';
         countEl.textContent = 'エラー';
         return;
       }
       loadingEl.remove();
 
-      const map = L.map('map').setView([35.6812, 139.7671], 16); // 東京駅
-      L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', {
-        attribution: '© OpenStreetMap',
-        maxZoom: 19,
-      }).addTo(map);
+      mapRef = L.map('map', { zoomControl: false, attributionControl: true })
+        .setView([35.6812, 139.7671], 16);
 
-      const meIcon = L.divIcon({ className: '', html: '<div class="me-icon"></div>', iconSize: [18, 18], iconAnchor: [9, 9] });
+      // ライト用タイル（CARTO Positron）
+      tileLayerLight = L.tileLayer('https://{s}.basemaps.cartocdn.com/light_nolabels/{z}/{x}/{y}{r}.png', {
+        attribution: '© OpenStreetMap © CARTO', subdomains: 'abcd', maxZoom: 20,
+      });
+      labelLayerLight = L.tileLayer('https://{s}.basemaps.cartocdn.com/light_only_labels/{z}/{x}/{y}{r}.png', {
+        attribution: '', subdomains: 'abcd', maxZoom: 20,
+      });
+      // ダーク用タイル（CARTO Dark Matter）
+      tileLayerDark = L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_nolabels/{z}/{x}/{y}{r}.png', {
+        attribution: '© OpenStreetMap © CARTO', subdomains: 'abcd', maxZoom: 20,
+      });
+      labelLayerDark = L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_only_labels/{z}/{x}/{y}{r}.png', {
+        attribution: '', subdomains: 'abcd', maxZoom: 20,
+      });
+
+      // 現在のテーマに合わせて初期タイルを設定
+      const actual = resolveTheme(getStoredTheme());
+      if (actual === 'dark') {
+        tileLayerDark.addTo(mapRef); labelLayerDark.addTo(mapRef);
+      } else {
+        tileLayerLight.addTo(mapRef); labelLayerLight.addTo(mapRef);
+      }
+
+      const meIcon = L.divIcon({
+        className: '',
+        html: '<div class="me-pulse"></div>',
+        iconSize: [16, 16], iconAnchor: [8, 8],
+      });
       let meMarker = null;
-      const vendingMarkers = L.layerGroup().addTo(map);
+      const vendingMarkers = L.layerGroup().addTo(mapRef);
 
       function locate() {
         if (!navigator.geolocation) { showStatus('位置情報が使えません'); return; }
@@ -109,21 +506,21 @@
           (pos) => {
             const { latitude, longitude } = pos.coords;
             if (meMarker) meMarker.remove();
-            meMarker = L.marker([latitude, longitude], { icon: meIcon }).addTo(map);
-            map.setView([latitude, longitude], 17);
+            meMarker = L.marker([latitude, longitude], { icon: meIcon, zIndexOffset: 1000 }).addTo(mapRef);
+            mapRef.setView([latitude, longitude], 17);
             statusEl.classList.remove('show');
             searchVending();
           },
-          (err) => { showStatus('現在地取得に失敗: ' + err.message, 3000); countEl.textContent = '取得失敗'; }
+          (err) => { showStatus('現在地取得に失敗', 3000); countEl.textContent = '取得失敗'; }
         );
       }
 
       async function searchVending() {
-        const b = map.getBounds();
+        const b = mapRef.getBounds();
         const bbox = `${b.getSouth()},${b.getWest()},${b.getNorth()},${b.getEast()}`;
         const query = `[out:json][timeout:25];node["amenity"="vending_machine"](${bbox});out;`;
-        showStatus('自販機を検索中…', 0);
-        countEl.textContent = '検索中…';
+        showStatus('検索中…', 0);
+        countEl.textContent = '検索中';
         try {
           const res = await fetch('https://overpass-api.de/api/interpreter', {
             method: 'POST',
@@ -137,25 +534,26 @@
             const type = tags.vending || 'unknown';
             const isDrink = ['drinks', 'sweets', 'food', 'coffee'].includes(type);
             if (isDrink) drinkCount++;
-            const emoji = type === 'drinks' ? '🥤' : type === 'coffee' ? '☕' : type === 'sweets' ? '🍫' : type === 'cigarettes' ? '🚬' : '🏷️';
+            const emoji = type === 'drinks' ? '🥤' : type === 'coffee' ? '☕' : type === 'sweets' ? '🍫' : type === 'food' ? '🍙' : type === 'cigarettes' ? '🚬' : type === 'parking_tickets' ? '🅿️' : '🏷️';
+            const dimClass = isDrink ? '' : ' dim';
             const icon = L.divIcon({
               className: '',
-              html: `<div style="font-size:24px;line-height:1;">${emoji}</div>`,
-              iconSize: [28, 28], iconAnchor: [14, 14],
+              html: `<div class="vm-pin${dimClass}">${emoji}</div>`,
+              iconSize: [30, 30], iconAnchor: [15, 15],
             });
             const marker = L.marker([el.lat, el.lon], { icon });
             const payments = Object.keys(tags).filter(k => k.startsWith('payment:') && tags[k] === 'yes').map(k => k.replace('payment:', ''));
+            const typeLabel = { drinks: '飲み物', coffee: 'コーヒー', sweets: 'お菓子', food: '食品', cigarettes: 'タバコ', parking_tickets: '駐車券' }[type] || type;
             const popup = `
-              <div style="font-size:13px;min-width:140px;">
-                <div style="font-weight:600;margin-bottom:4px;">${tags.name || '自動販売機'}</div>
-                <div>種類: ${type}</div>
-                ${tags.operator ? `<div>運営: ${tags.operator}</div>` : ''}
-                ${payments.length ? `<div>支払: ${payments.join(', ')}</div>` : ''}
-              </div>`;
+              <div class="popup-title">${emoji} ${tags.name || '自動販売機'}</div>
+              <div class="popup-row"><strong>種類</strong>: ${typeLabel}</div>
+              ${tags.operator ? `<div class="popup-row"><strong>運営</strong>: ${tags.operator}</div>` : ''}
+              ${payments.length ? `<div class="popup-row"><strong>支払</strong>: ${payments.join(', ')}</div>` : ''}
+            `;
             marker.bindPopup(popup);
             vendingMarkers.addLayer(marker);
           });
-          countEl.textContent = `${data.elements.length}件 (飲食${drinkCount})`;
+          countEl.textContent = `${data.elements.length}件 · 飲食${drinkCount}`;
           showStatus(`${data.elements.length}件 見つかりました`);
         } catch (e) {
           showStatus('検索に失敗しました', 3000);
@@ -166,16 +564,10 @@
       document.getElementById('btn-locate').addEventListener('click', locate);
       document.getElementById('btn-search').addEventListener('click', searchVending);
 
-      // 起動時に自動で現在地取得
       locate();
     }
 
-    // Leafletの読み込み完了を待ってからinit
-    if (typeof L !== 'undefined') {
-      init();
-    } else {
-      window.addEventListener('load', init);
-    }
+    if (typeof L !== 'undefined') { init(); } else { window.addEventListener('load', init); }
   </script>
 </body>
 </html>
