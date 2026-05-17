@@ -568,18 +568,18 @@
       }
       loadingEl.remove();
 
-      mapRef = L.map('map', { zoomControl: false, attributionControl: true })
+      mapRef = L.map('map', { zoomControl: false, attributionControl: true, maxZoom: 18 })
         .setView([35.6812, 139.7671], 16);
 
       tileLayerLight = L.tileLayer('https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png', {
-        attribution: '© OpenStreetMap © CARTO', subdomains: 'abcd', maxZoom: 20,
+        attribution: '© OpenStreetMap © CARTO', subdomains: 'abcd', maxZoom: 18,
       });
       labelLayerLight = null;
       tileLayerDark = L.tileLayer('https://{s}.basemaps.cartocdn.com/rastertiles/voyager_nolabels/{z}/{x}/{y}{r}.png', {
-        attribution: '© OpenStreetMap © CARTO', subdomains: 'abcd', maxZoom: 20,
+        attribution: '© OpenStreetMap © CARTO', subdomains: 'abcd', maxZoom: 18,
       });
       labelLayerDark = L.tileLayer('https://{s}.basemaps.cartocdn.com/rastertiles/voyager_only_labels/{z}/{x}/{y}{r}.png', {
-        attribution: '', subdomains: 'abcd', maxZoom: 20,
+        attribution: '', subdomains: 'abcd', maxZoom: 18,
       });
 
       const actual = resolveTheme(getStoredTheme());
