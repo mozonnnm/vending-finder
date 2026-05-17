@@ -1,0 +1,181 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+  <title>自販機マップ</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css" />
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    html, body { height: 100%; width: 100%; font-family: -apple-system, BlinkMacSystemFont, "Hiragino Sans", sans-serif; }
+    #map { height: 100vh; width: 100vw; background: #e5e7eb; }
+
+    .top-bar {
+      position: absolute; top: 0; left: 0; right: 0; z-index: 1000;
+      background: rgba(255, 255, 255, 0.95);
+      padding: 12px 16px;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+      display: flex; justify-content: space-between; align-items: center;
+    }
+    .top-bar h1 { font-size: 16px; font-weight: 600; }
+    .count { font-size: 13px; color: #666; }
+
+    .controls {
+      position: absolute; bottom: 24px; left: 50%; transform: translateX(-50%);
+      z-index: 1000; display: flex; gap: 8px;
+    }
+    .btn {
+      background: #fff; border: none;
+      padding: 12px 20px; border-radius: 24px;
+      font-size: 14px; font-weight: 500;
+      box-shadow: 0 2px 12px rgba(0,0,0,0.15);
+      cursor: pointer;
+    }
+    .btn:active { background: #f0f0f0; }
+    .btn-primary { background: #2563eb; color: #fff; }
+    .btn-primary:active { background: #1e40af; }
+
+    .status {
+      position: absolute; top: 64px; left: 50%; transform: translateX(-50%);
+      z-index: 1000;
+      background: rgba(0,0,0,0.75); color: #fff;
+      padding: 8px 14px; border-radius: 16px;
+      font-size: 13px;
+      opacity: 0; transition: opacity 0.3s;
+      pointer-events: none;
+      white-space: nowrap;
+    }
+    .status.show { opacity: 1; }
+
+    .me-icon {
+      width: 18px; height: 18px;
+      background: #2563eb; border: 3px solid #fff;
+      border-radius: 50%;
+      box-shadow: 0 0 0 2px rgba(37,99,235,0.3);
+    }
+    .loading {
+      position: absolute; inset: 0; z-index: 500;
+      display: flex; align-items: center; justify-content: center;
+      background: #e5e7eb; color: #555; font-size: 14px;
+    }
+  </style>
+</head>
+<body>
+  <div class="top-bar">
+    <h1>🥤 自販機マップ</h1>
+    <span class="count" id="count">準備中…</span>
+  </div>
+  <div id="map"><div class="loading" id="loading">地図ライブラリを読込中…</div></div>
+  <div class="status" id="status"></div>
+  <div class="controls">
+    <button class="btn" id="btn-locate">📍 現在地</button>
+    <button class="btn btn-primary" id="btn-search">この範囲で探す</button>
+  </div>
+
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js"></script>
+  <script>
+    const statusEl = document.getElementById('status');
+    const countEl = document.getElementById('count');
+    const loadingEl = document.getElementById('loading');
+
+    function showStatus(msg, ms = 2000) {
+      statusEl.textContent = msg;
+      statusEl.classList.add('show');
+      if (ms > 0) setTimeout(() => statusEl.classList.remove('show'), ms);
+    }
+
+    function init() {
+      if (typeof L === 'undefined') {
+        loadingEl.textContent = '地図ライブラリの読込に失敗しました';
+        countEl.textContent = 'エラー';
+        return;
+      }
+      loadingEl.remove();
+
+      const map = L.map('map').setView([35.6812, 139.7671], 16); // 東京駅
+      L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', {
+        attribution: '© OpenStreetMap',
+        maxZoom: 19,
+      }).addTo(map);
+
+      const meIcon = L.divIcon({ className: '', html: '<div class="me-icon"></div>', iconSize: [18, 18], iconAnchor: [9, 9] });
+      let meMarker = null;
+      const vendingMarkers = L.layerGroup().addTo(map);
+
+      function locate() {
+        if (!navigator.geolocation) { showStatus('位置情報が使えません'); return; }
+        showStatus('現在地を取得中…', 0);
+        navigator.geolocation.getCurrentPosition(
+          (pos) => {
+            const { latitude, longitude } = pos.coords;
+            if (meMarker) meMarker.remove();
+            meMarker = L.marker([latitude, longitude], { icon: meIcon }).addTo(map);
+            map.setView([latitude, longitude], 17);
+            statusEl.classList.remove('show');
+            searchVending();
+          },
+          (err) => { showStatus('現在地取得に失敗: ' + err.message, 3000); countEl.textContent = '取得失敗'; }
+        );
+      }
+
+      async function searchVending() {
+        const b = map.getBounds();
+        const bbox = `${b.getSouth()},${b.getWest()},${b.getNorth()},${b.getEast()}`;
+        const query = `[out:json][timeout:25];node["amenity"="vending_machine"](${bbox});out;`;
+        showStatus('自販機を検索中…', 0);
+        countEl.textContent = '検索中…';
+        try {
+          const res = await fetch('https://overpass-api.de/api/interpreter', {
+            method: 'POST',
+            body: 'data=' + encodeURIComponent(query),
+          });
+          const data = await res.json();
+          vendingMarkers.clearLayers();
+          let drinkCount = 0;
+          data.elements.forEach((el) => {
+            const tags = el.tags || {};
+            const type = tags.vending || 'unknown';
+            const isDrink = ['drinks', 'sweets', 'food', 'coffee'].includes(type);
+            if (isDrink) drinkCount++;
+            const emoji = type === 'drinks' ? '🥤' : type === 'coffee' ? '☕' : type === 'sweets' ? '🍫' : type === 'cigarettes' ? '🚬' : '🏷️';
+            const icon = L.divIcon({
+              className: '',
+              html: `<div style="font-size:24px;line-height:1;">${emoji}</div>`,
+              iconSize: [28, 28], iconAnchor: [14, 14],
+            });
+            const marker = L.marker([el.lat, el.lon], { icon });
+            const payments = Object.keys(tags).filter(k => k.startsWith('payment:') && tags[k] === 'yes').map(k => k.replace('payment:', ''));
+            const popup = `
+              <div style="font-size:13px;min-width:140px;">
+                <div style="font-weight:600;margin-bottom:4px;">${tags.name || '自動販売機'}</div>
+                <div>種類: ${type}</div>
+                ${tags.operator ? `<div>運営: ${tags.operator}</div>` : ''}
+                ${payments.length ? `<div>支払: ${payments.join(', ')}</div>` : ''}
+              </div>`;
+            marker.bindPopup(popup);
+            vendingMarkers.addLayer(marker);
+          });
+          countEl.textContent = `${data.elements.length}件 (飲食${drinkCount})`;
+          showStatus(`${data.elements.length}件 見つかりました`);
+        } catch (e) {
+          showStatus('検索に失敗しました', 3000);
+          countEl.textContent = '失敗';
+        }
+      }
+
+      document.getElementById('btn-locate').addEventListener('click', locate);
+      document.getElementById('btn-search').addEventListener('click', searchVending);
+
+      // 起動時に自動で現在地取得
+      locate();
+    }
+
+    // Leafletの読み込み完了を待ってからinit
+    if (typeof L !== 'undefined') {
+      init();
+    } else {
+      window.addEventListener('load', init);
+    }
+  </script>
+</body>
+</html>
