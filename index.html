@@ -10,6 +10,7 @@
   <link rel="apple-touch-icon" sizes="180x180" href="icon-180.png" />
   <meta name="apple-mobile-web-app-title" content="VendiMap" />
   <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="mobile-web-app-capable" content="yes" />
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
   <meta property="og:title" content="VendiMap - find nearby vending machines" />
   <meta property="og:description" content="Find nearby vending machines on a map. 旅先で近くの自販機を地図で探せる無料PWA。" />
@@ -129,18 +130,6 @@
       padding: 0;
     }
     .icon-btn:active { transform: scale(0.92); }
-    /* 文字ボタン用フォントサイズ */
-    #btn-radius { font-size: 11px; }
-    /* フィルターボタンはテキスト幅に応じてpill形状に伸縮（円形だと「🥤 飲食」「🏷️ 全て」が見切れる） */
-    #btn-filter {
-      width: auto;
-      min-width: 40px;
-      padding: 0 12px;
-      border-radius: 999px;
-      font-size: 13px;
-      white-space: nowrap;
-      gap: 4px;
-    }
     .icon-btn.active {
       background: var(--accent);
       color: #fff;
@@ -945,6 +934,9 @@
   <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet.markercluster/1.5.3/leaflet.markercluster.min.js"></script>
   <script>
+    // URLに ?debug=1 が付いていればコンソールに info ログを流す
+    const VENDIMAP_DEBUG = new URLSearchParams(location.search).has('debug');
+
     // === 国際化 (i18n) ===
     const LANG_KEY = 'vendimap-lang';
     const MESSAGES = {
@@ -953,12 +945,11 @@
         loadingMap: '地図を読込中…',
         loadingFailed: '地図ライブラリの読込に失敗しました',
         preparing: '準備中',
-        countWithDrinks: '{n}件 · 飲食{d}',
+        countWithDrinks: '{n}件 · {r} · 飲食{d}',
         countLabel: '失敗',
         searching: '検索中',
         // sheet titles
         settingsSheetTitle: '設定',
-        filterSheetTitle: '表示フィルター',
         radiusSheetTitle: '検索範囲',
         themeSheetTitle: '外観',
         // section labels
@@ -1070,41 +1061,27 @@
         listTabFavorites: '⭐ お気に入り',
         listEmptyNearby: '該当する自販機がありません',
         listEmptyFavorites: 'お気に入りはまだありません',
-        listEmptyFavoritesHint: 'ピンをタップして★を押すと保存できます',
+        listEmptyFavoritesHint: 'ピンをタップして「保存」を押すと記録されます',
         // info note
         infoTitle: 'データについて',
-        infoBody: '自販機情報は{osm}由来です。実際にはもう存在しない、または未登録の可能性があります。⚠マークは情報が古い可能性のあるものです。ピンをタップして「ある／ない」を報告できます。',
+        infoBody: '自販機情報は{osm}由来です。実際にはもう存在しない、または未登録の可能性があります。⚠マークは情報が古い可能性のあるものです。ピンをタップして「ある／ない」を報告できます。検索範囲・フィルター・言語などは右上の⚙️から変更できます。',
         infoPrivacyLink: 'プライバシーポリシー',
         infoTermsLink: '利用規約',
         infoExportLink: '報告をエクスポート',
         // ARIA
         ariaSheetClose: '閉じる',
         ariaBtnSettings: '設定',
-        ariaBtnRadius: '検索範囲',
-        ariaBtnFilter: 'フィルター',
-        ariaBtnCompass: '向きを表示',
-        ariaBtnTheme: 'テーマ切替',
-        ariaFav: 'お気に入り',
-        ariaShare: 'シェア',
-        ariaStreetView: 'ストリートビューで確認',
-        ariaOsmEdit: 'OpenStreetMapで編集',
         ariaReportExists: 'ここに自販機があると報告',
         ariaReportMissing: 'ここに自販機がないと報告',
-        ariaFilterStatus: 'フィルター: {type}・{stale}',
-        ariaFilterTypeDrinks: '飲食のみ',
-        ariaFilterTypeAll: '全種類',
-        ariaFilterStaleHide: '古いデータ除外',
-        ariaFilterStaleShow: '全データ表示',
       },
       en: {
         loadingMap: 'Loading map…',
         loadingFailed: 'Failed to load the map library',
         preparing: 'Loading',
-        countWithDrinks: '{n} · drinks {d}',
+        countWithDrinks: '{n} · {r} · drinks {d}',
         countLabel: 'Failed',
         searching: 'Searching',
         settingsSheetTitle: 'Settings',
-        filterSheetTitle: 'Display filters',
         radiusSheetTitle: 'Search radius',
         themeSheetTitle: 'Appearance',
         sectionType: 'Type',
@@ -1199,29 +1176,16 @@
         listTabFavorites: '⭐ Saved',
         listEmptyNearby: 'No matching machines',
         listEmptyFavorites: 'Nothing saved yet',
-        listEmptyFavoritesHint: 'Tap a pin and press ★ to save it',
+        listEmptyFavoritesHint: 'Tap a pin, then press Save',
         infoTitle: 'About the data',
-        infoBody: 'Vending machine data comes from {osm}. Some pins may no longer exist, and new ones may be missing. The ⚠ mark means the data could be stale. Tap a pin to report whether it exists.',
+        infoBody: 'Vending machine data comes from {osm}. Some pins may no longer exist, and new ones may be missing. The ⚠ mark means the data could be stale. Tap a pin to report whether it exists. Use the ⚙️ button at the top-right for radius, filters, language, and more.',
         infoPrivacyLink: 'Privacy policy',
         infoTermsLink: 'Terms',
         infoExportLink: 'Export reports',
         ariaSheetClose: 'Close',
         ariaBtnSettings: 'Settings',
-        ariaBtnRadius: 'Search radius',
-        ariaBtnFilter: 'Filter',
-        ariaBtnCompass: 'Heading',
-        ariaBtnTheme: 'Theme',
-        ariaFav: 'Save',
-        ariaShare: 'Share',
-        ariaStreetView: 'Open Street View',
-        ariaOsmEdit: 'Edit in OpenStreetMap',
         ariaReportExists: 'Report that this exists',
         ariaReportMissing: 'Report that this is missing',
-        ariaFilterStatus: 'Filter: {type}, {stale}',
-        ariaFilterTypeDrinks: 'drinks only',
-        ariaFilterTypeAll: 'all types',
-        ariaFilterStaleHide: 'hiding stale data',
-        ariaFilterStaleShow: 'showing all data',
       },
     };
     function detectLang() {
@@ -1315,10 +1279,10 @@
         }, ms);
       }
 
-      // コンソールにも出力（デバッグ用）
-      if (isError || msg.includes('失敗') || msg.includes('エラー')) {
+      // エラーは常に console.error。情報ログは ?debug=1 のときだけ出す
+      if (isError || msg.toLowerCase().includes('error') || msg.includes('失敗') || msg.includes('エラー')) {
         console.error('VendiMap:', msg);
-      } else {
+      } else if (VENDIMAP_DEBUG) {
         console.log('VendiMap:', msg);
       }
     }
@@ -1368,7 +1332,8 @@
     applyTheme(getStoredTheme());
 
     // === 情報ノート（初回のみ表示） ===
-    const NOTE_KEY = 'vendimap-info-dismissed';
+    // v2: 設定統合の周知のため既存ユーザーにも再表示
+    const NOTE_KEY = 'vendimap-info-dismissed-v2';
     const infoNote = document.getElementById('info-note');
     if (!localStorage.getItem(NOTE_KEY)) {
       infoNote.classList.add('show');
@@ -1841,19 +1806,19 @@
       contactless: { ja: '非接触', en: 'Contactless' },
       qr_code: { ja: 'QRコード', en: 'QR code' },
       transportation_cards: { ja: '交通系IC', en: 'Transit IC' },
-      suica: { ja: 'Suica', en: 'Suica' },
-      pasmo: { ja: 'PASMO', en: 'PASMO' },
-      icoca: { ja: 'ICOCA', en: 'ICOCA' },
-      paypay: { ja: 'PayPay', en: 'PayPay' },
-      line_pay: { ja: 'LINE Pay', en: 'LINE Pay' },
-      rakuten_pay: { ja: '楽天ペイ', en: 'Rakuten Pay' },
-      d_barai: { ja: 'd払い', en: 'd-barai' },
-      merpay: { ja: 'メルペイ', en: 'Merpay' },
-      id: { ja: 'iD', en: 'iD' },
-      quicpay: { ja: 'QUICPay', en: 'QUICPay' },
-      edy: { ja: 'Edy', en: 'Edy' },
-      nanaco: { ja: 'nanaco', en: 'nanaco' },
-      waon: { ja: 'WAON', en: 'WAON' },
+      suica: { ja: 'Suica', en: 'Suica (transit IC)' },
+      pasmo: { ja: 'PASMO', en: 'PASMO (transit IC)' },
+      icoca: { ja: 'ICOCA', en: 'ICOCA (transit IC)' },
+      paypay: { ja: 'PayPay', en: 'PayPay (QR)' },
+      line_pay: { ja: 'LINE Pay', en: 'LINE Pay (QR)' },
+      rakuten_pay: { ja: '楽天ペイ', en: 'Rakuten Pay (QR)' },
+      d_barai: { ja: 'd払い', en: 'd-barai (QR)' },
+      merpay: { ja: 'メルペイ', en: 'Merpay (QR)' },
+      id: { ja: 'iD', en: 'iD (NFC)' },
+      quicpay: { ja: 'QUICPay', en: 'QUICPay (NFC)' },
+      edy: { ja: 'Edy', en: 'Edy (e-money)' },
+      nanaco: { ja: 'nanaco', en: 'nanaco (e-money)' },
+      waon: { ja: 'WAON', en: 'WAON (e-money)' },
       apple_pay: { ja: 'Apple Pay', en: 'Apple Pay' },
       google_pay: { ja: 'Google Pay', en: 'Google Pay' },
       coins_and_notes: { ja: '現金', en: 'Cash' },
@@ -2144,7 +2109,7 @@
           r._marker = marker;
           vendingMarkers.addLayer(marker);
         });
-        countEl.textContent = t('countWithDrinks', { n: items.length, d: drinkCount });
+        countEl.textContent = t('countWithDrinks', { n: items.length, d: drinkCount, r: radiusLabel(SEARCH_RADIUS_M) });
         const staleNote = staleCount > 0 ? t('statusStaleSuffix', { n: staleCount }) : '';
         showStatus(t('statusResultCount', { n: items.length, r: radiusLabel(SEARCH_RADIUS_M), stale: staleNote }));
       };
