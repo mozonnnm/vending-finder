@@ -235,6 +235,25 @@
       box-shadow: var(--shadow);
     }
     .status.show { opacity: 1; transform: translateX(-50%) translateY(0); }
+    .status { display: inline-flex; align-items: center; gap: 10px; }
+    .status.error {
+      background: rgba(255, 59, 48, 0.95);
+      color: #fff;
+      border-color: rgba(255, 59, 48, 0.6);
+    }
+    .status-retry {
+      appearance: none; -webkit-appearance: none;
+      background: rgba(255, 255, 255, 0.22);
+      color: inherit;
+      border: 0.5px solid rgba(255, 255, 255, 0.35);
+      padding: 4px 12px; border-radius: 999px;
+      font-size: 12px; font-weight: 600;
+      cursor: pointer;
+      pointer-events: auto;
+      transition: background 0.15s;
+    }
+    .status-retry:hover { background: rgba(255, 255, 255, 0.32); }
+    .status-retry:active { background: rgba(255, 255, 255, 0.42); }
 
     /* === 現在地マーカー（コーン付き） === */
     .me-wrap {
@@ -704,7 +723,10 @@
     </div>
   </div>
 
-  <div class="status" id="status"></div>
+  <div class="status" id="status">
+    <span id="status-msg"></span>
+    <button class="status-retry" id="status-retry" hidden>再試行</button>
+  </div>
 
   <div class="controls">
     <button class="btn" id="btn-list">
@@ -784,15 +806,50 @@
   <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet.markercluster/1.5.3/leaflet.markercluster.min.js"></script>
   <script>
     const statusEl = document.getElementById('status');
+    const statusMsgEl = document.getElementById('status-msg');
+    const statusRetryEl = document.getElementById('status-retry');
     const countEl = document.getElementById('count');
     const loadingEl = document.getElementById('loading');
     const themeColorMeta = document.getElementById('theme-color-meta');
     const themeIconEl = document.getElementById('theme-icon');
 
-    function showStatus(msg, ms = 2000) {
-      statusEl.textContent = msg;
+    function showStatus(msg, msOrOpts = 2000) {
+      const opts = (typeof msOrOpts === 'object' && msOrOpts !== null) ? msOrOpts : { ms: msOrOpts };
+      const ms = typeof opts.ms === 'number' ? opts.ms : 2000;
+      const isError = opts.type === 'error';
+
+      statusMsgEl.textContent = msg;
+      statusEl.classList.toggle('error', isError);
       statusEl.classList.add('show');
-      if (ms > 0) setTimeout(() => statusEl.classList.remove('show'), ms);
+
+      // リトライボタンの制御
+      if (typeof opts.retry === 'function') {
+        statusRetryEl.hidden = false;
+        statusRetryEl.onclick = () => {
+          statusRetryEl.hidden = true;
+          statusEl.classList.remove('show');
+          opts.retry();
+        };
+      } else {
+        statusRetryEl.hidden = true;
+        statusRetryEl.onclick = null;
+      }
+
+      if (ms > 0) {
+        clearTimeout(statusTimeout);
+        statusTimeout = setTimeout(() => {
+          statusEl.classList.remove('show');
+          statusEl.classList.remove('error');
+          statusRetryEl.hidden = true;
+        }, ms);
+      }
+
+      // コンソールにも出力（デバッグ用）
+      if (isError || msg.includes('失敗') || msg.includes('エラー')) {
+        console.error('VendiMap:', msg);
+      } else {
+        console.log('VendiMap:', msg);
+      }
     }
 
     // === テーマ管理 ===
@@ -873,11 +930,11 @@
     function applyFilterButtonUI() {
       if (filterDrinkOnly) {
         btnFilter.classList.add('active');
-        btnFilter.textContent = '🥤';
+        btnFilter.textContent = '🥤 飲食';
         btnFilter.setAttribute('aria-label', '飲食のみ表示中（タップで全表示）');
       } else {
         btnFilter.classList.remove('active');
-        btnFilter.textContent = '🏷️';
+        btnFilter.textContent = '🏷️ 全て';
         btnFilter.setAttribute('aria-label', '全表示中（タップで飲食のみ）');
       }
     }
@@ -915,7 +972,8 @@
       return m >= 1000 ? `${m/1000}km` : `${m}m`;
     }
     function applyRadiusUI() {
-      btnRadius.textContent = radiusLabel(SEARCH_RADIUS_M);
+      btnRadius.textContent = `📍 ${radiusLabel(SEARCH_RADIUS_M)}`;
+      btnRadius.setAttribute('aria-label', `検索範囲: ${radiusLabel(SEARCH_RADIUS_M)}`);
       document.querySelectorAll('[data-radius]').forEach(opt => {
         opt.classList.toggle('active', Number(opt.dataset.radius) === SEARCH_RADIUS_M);
       });
@@ -931,6 +989,7 @@
         SEARCH_RADIUS_M = Number(opt.dataset.radius);
         localStorage.setItem(RADIUS_KEY, String(SEARCH_RADIUS_M));
         applyRadiusUI();
+        showStatus(`検索範囲を ${radiusLabel(SEARCH_RADIUS_M)} に変更しました`);
         setTimeout(closeRadiusSheet, 150);
         // 現在地が分かっていればそこから、無ければ地図中心から再検索
         if (currentPos) {
@@ -1169,7 +1228,7 @@
         .setView([35.6812, 139.7671], 16);
 
       // MapTiler API キー
-      const MAPTILER_KEY = 'rmPG4G7SFk16fCzki7Hm';
+      const MAPTILER_KEY = 'dRjXmZ7QOpjJQYwAWs5g';
 
       tileLayerLight = L.tileLayer(`https://api.maptiler.com/maps/bright-v2/{z}/{x}/{y}.png?key=${MAPTILER_KEY}`, {
         attribution: '© MapTiler © OpenStreetMap',
@@ -1273,11 +1332,25 @@
         const query = `[out:json][timeout:25];node["amenity"="vending_machine"](around:${SEARCH_RADIUS_M},${lat},${lng});out meta;`;
         showStatus('検索中…', 0);
         countEl.textContent = '検索中';
+
+        const retry = () => searchVending(lat, lng);
+        const controller = new AbortController();
+        const timeoutId = setTimeout(() => controller.abort(), 30000);
+
         try {
+          if (!navigator.onLine) {
+            throw new Error('OFFLINE');
+          }
           const res = await fetch('https://overpass-api.de/api/interpreter', {
             method: 'POST',
             body: 'data=' + encodeURIComponent(query),
+            signal: controller.signal,
           });
+          if (!res.ok) {
+            const err = new Error('HTTP_' + res.status);
+            err.status = res.status;
+            throw err;
+          }
           const data = await res.json();
           // データを正規化してlastResultsに格納
           const STALE_YEARS = 8;
@@ -1298,8 +1371,23 @@
           renderMarkers();
           renderList();
         } catch (e) {
-          showStatus('検索に失敗しました', 3000);
+          console.error('VendiMap searchVending error:', e);
+          let msg;
+          if (e.name === 'AbortError') {
+            msg = 'タイムアウトしました。範囲を狭めてみてください';
+          } else if (e.message === 'OFFLINE') {
+            msg = 'オフラインです。接続を確認してください';
+          } else if (e.status === 429 || e.status === 503 || e.status === 504) {
+            msg = 'サーバーが混雑中。少し待って再試行してください';
+          } else if (e instanceof TypeError) {
+            msg = 'ネットワークエラー。接続を確認してください';
+          } else {
+            msg = '検索に失敗しました';
+          }
+          showStatus(msg, { ms: 8000, type: 'error', retry });
           countEl.textContent = '失敗';
+        } finally {
+          clearTimeout(timeoutId);
         }
       }
 
