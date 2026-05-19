@@ -61,6 +61,11 @@ git push origin main
 - Overpass APIは公共インフラのため、レート制限がかかる場合があります（本アプリ側で1時間のローカルキャッシュ＋2秒クールダウンを実装済み）
 - 8年以上更新がないデータは⚠️マークで表示しますが、実在性は保証されません
 
+## ポリシー
+
+- [プライバシーポリシー](https://mozonnnm.github.io/vending-finder/privacy.html)
+- [利用規約](https://mozonnnm.github.io/vending-finder/terms.html)
+
 ## ライセンス
 
 未設定。コードを再利用したい場合はissueにてご相談ください。

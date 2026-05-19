@@ -1,0 +1,127 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>プライバシーポリシー - VendiMap</title>
+  <meta name="robots" content="index,follow" />
+  <style>
+    :root { color-scheme: light dark; }
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "Hiragino Sans", "Helvetica Neue", Arial, sans-serif;
+      max-width: 720px;
+      margin: 0 auto;
+      padding: 32px 20px 64px;
+      line-height: 1.7;
+      color: #1d1d1f;
+      background: #f5f5f7;
+    }
+    @media (prefers-color-scheme: dark) {
+      body { color: #f5f5f7; background: #1d1d1f; }
+      a { color: #66b3ff; }
+    }
+    h1 { font-size: 28px; margin-bottom: 8px; }
+    h2 { font-size: 20px; margin-top: 32px; }
+    p, ul, ol { margin: 12px 0; }
+    .meta { color: #6e6e73; font-size: 14px; margin-bottom: 24px; }
+    nav { margin-bottom: 24px; font-size: 14px; }
+    nav a { margin-right: 16px; }
+    table { border-collapse: collapse; width: 100%; margin: 12px 0; }
+    th, td { border: 1px solid rgba(127,127,127,0.3); padding: 8px 12px; text-align: left; }
+    code { background: rgba(127,127,127,0.15); padding: 2px 6px; border-radius: 4px; }
+  </style>
+</head>
+<body>
+  <nav>
+    <a href="./">← VendiMapに戻る</a>
+    <a href="./terms.html">利用規約</a>
+  </nav>
+
+  <h1>プライバシーポリシー</h1>
+  <p class="meta">最終更新日: 2026年5月19日</p>
+
+  <p>VendiMap（以下「本サービス」）における、利用者の個人情報・利用情報の取り扱いについて以下のとおり定めます。本サービスは個人開発者により提供されており、運営者と利用者の間で本ポリシーが適用されます。</p>
+
+  <h2>1. 収集する情報と利用目的</h2>
+  <p>本サービスは、以下の情報を利用者の端末上で扱います。</p>
+  <table>
+    <thead>
+      <tr><th>情報</th><th>取得方法</th><th>利用目的</th><th>保存場所</th></tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td>位置情報（緯度・経度）</td>
+        <td>ブラウザのGeolocation API（利用者の許可後のみ）</td>
+        <td>近くの自販機の表示、地図中心の設定</td>
+        <td>端末内のみ（送信されません）</td>
+      </tr>
+      <tr>
+        <td>地図の表示位置・ズーム</td>
+        <td>地図の操作から取得</td>
+        <td>次回起動時の状態復元</td>
+        <td>端末の localStorage</td>
+      </tr>
+      <tr>
+        <td>お気に入り登録</td>
+        <td>利用者による登録操作</td>
+        <td>お気に入り一覧の表示</td>
+        <td>端末の localStorage</td>
+      </tr>
+      <tr>
+        <td>検索結果のキャッシュ</td>
+        <td>検索時に自動取得</td>
+        <td>外部APIへの負荷軽減・表示の高速化</td>
+        <td>端末の localStorage（1時間で自動破棄）</td>
+      </tr>
+    </tbody>
+  </table>
+  <p>これらは利用者の端末内でのみ管理され、本サービスのサーバーには送信・保存されません（本サービスは独自のサーバーを持ちません）。</p>
+
+  <h2>2. 第三者サービスとの通信</h2>
+  <p>本サービスは、表示と検索のため以下の第三者サービスと通信を行います。各サービスのプライバシーポリシーが適用される場合があります。</p>
+  <ul>
+    <li><strong>Overpass API（OpenStreetMap）</strong> — 自販機の位置データを取得するため。検索範囲（緯度・経度・半径）が送信されます。
+      <br />参照: <a href="https://wiki.openstreetmap.org/wiki/Overpass_API" target="_blank" rel="noopener">Overpass API</a>
+    </li>
+    <li><strong>MapTiler</strong> — 地図タイルの取得のため。表示中の地図領域の座標が送信されます。
+      <br />参照: <a href="https://www.maptiler.com/privacy-policy/" target="_blank" rel="noopener">MapTiler プライバシーポリシー</a>
+    </li>
+    <li><strong>GitHub Pages</strong> — 本サービスのホスティングのため。アクセスログが取得される場合があります。
+      <br />参照: <a href="https://docs.github.com/en/site-policy/privacy-policies/github-general-privacy-statement" target="_blank" rel="noopener">GitHub Privacy Statement</a>
+    </li>
+  </ul>
+  <p>これらの通信にはネットワーク経路上で利用者のIPアドレス等が含まれる場合があります。各サービスでの個別の取り扱いは、各社のポリシーをご確認ください。</p>
+
+  <h2>3. Cookieについて</h2>
+  <p>本サービスは Cookie を使用しません。利用者の情報は端末の localStorage のみで管理されます。ブラウザの設定から localStorage を削除すれば、保存された情報はすべて消えます。</p>
+
+  <h2>4. 解析・トラッキング</h2>
+  <p>本サービスは、利用状況の改善のために匿名のアクセス統計を取得する場合があります。導入時にはどの計測サービスを利用するかを本ポリシーに追記し、必要に応じて利用者が拒否する手段を提供します。なお、個人を特定する情報は収集しません。</p>
+
+  <h2>5. データの第三者提供</h2>
+  <p>本サービスは、利用者の同意なく利用者の情報を第三者に提供しません。本サービスはサーバー側にデータを保存しないため、提供できるデータも保持していません。</p>
+
+  <h2>6. 利用者の権利</h2>
+  <p>利用者は以下の操作を任意のタイミングで行えます。</p>
+  <ul>
+    <li>位置情報の利用を拒否する（ブラウザの権限設定から）</li>
+    <li>localStorage に保存された情報を削除する（ブラウザの設定 → サイトデータの削除）</li>
+    <li>本サービスの利用を中止する</li>
+  </ul>
+
+  <h2>7. 子どもへの対応</h2>
+  <p>本サービスは年齢制限なしで利用可能ですが、位置情報の利用には保護者の同意・配慮を推奨します。</p>
+
+  <h2>8. ポリシーの変更</h2>
+  <p>本ポリシーは法令の変更・サービスの拡張に応じて改定される場合があります。変更時は本ページの最終更新日を更新します。重大な変更がある場合はアプリ内・GitHubでも告知します。</p>
+
+  <h2>9. お問い合わせ</h2>
+  <p>本サービスに関するお問い合わせは、<a href="https://github.com/mozonnnm/vending-finder/issues" target="_blank" rel="noopener">GitHubリポジトリのIssue</a>からお願いします。</p>
+
+  <hr />
+  <nav>
+    <a href="./">← VendiMapに戻る</a>
+    <a href="./terms.html">利用規約</a>
+  </nav>
+</body>
+</html>
