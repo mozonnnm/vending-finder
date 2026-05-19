@@ -1,14 +1,15 @@
 {
-  "name": "VendiMap",
+  "name": "VendiMap - find nearby vending machines",
   "short_name": "VendiMap",
-  "description": "近くの自動販売機を地図で探せる",
+  "description": "Find nearby vending machines on a map. Built on OpenStreetMap. 近くの自動販売機を地図で探せる無料PWA。",
   "start_url": "./",
   "scope": "./",
   "display": "standalone",
   "orientation": "portrait",
   "background_color": "#1e2129",
   "theme_color": "#1e2129",
-  "lang": "ja",
+  "lang": "en",
+  "dir": "ltr",
   "categories": ["navigation", "utilities", "travel"],
   "icons": [
     {

@@ -11,8 +11,8 @@
   <meta name="apple-mobile-web-app-title" content="VendiMap" />
   <meta name="apple-mobile-web-app-capable" content="yes" />
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
-  <meta property="og:title" content="VendiMap - 自販機マップ" />
-  <meta property="og:description" content="近くの自動販売機を地図で探せる" />
+  <meta property="og:title" content="VendiMap - find nearby vending machines" />
+  <meta property="og:description" content="Find nearby vending machines on a map. 旅先で近くの自販機を地図で探せる無料PWA。" />
   <meta property="og:image" content="icon-512.png" />
   <title>VendiMap</title>
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css" />
@@ -786,12 +786,12 @@
     </div>
     <div class="header-right">
       <div class="pill" id="count-pill">
-        <span class="count-num" id="count">準備中</span>
+        <span class="count-num" id="count" data-i18n="preparing">準備中</span>
       </div>
-      <button class="icon-btn" id="btn-radius" aria-label="検索範囲">1km</button>
-      <button class="icon-btn" id="btn-filter" aria-label="フィルター">🥤</button>
-      <button class="icon-btn" id="btn-compass" aria-label="向きを表示">🧭</button>
-      <button class="icon-btn" id="btn-theme" aria-label="テーマ切替">
+      <button class="icon-btn" id="btn-radius" data-i18n-aria="ariaBtnRadius" aria-label="検索範囲">1km</button>
+      <button class="icon-btn" id="btn-filter" data-i18n-aria="ariaBtnFilter" aria-label="フィルター">🥤</button>
+      <button class="icon-btn" id="btn-compass" data-i18n-aria="ariaBtnCompass" aria-label="向きを表示">🧭</button>
+      <button class="icon-btn" id="btn-theme" data-i18n-aria="ariaBtnTheme" aria-label="テーマ切替">
         <span id="theme-icon">◐</span>
       </button>
     </div>
@@ -801,44 +801,44 @@
     <div class="info-note-inner">
       <div class="info-note-icon">ℹ️</div>
       <div class="info-note-text">
-        <strong>データについて</strong>
-        自販機情報は<a href="https://www.openstreetmap.org" target="_blank" style="color:var(--accent);text-decoration:none;">OpenStreetMap</a>由来です。実際にはもう存在しない、または未登録の可能性があります。⚠マークは情報が古い可能性のあるものです。ピンをタップして「ある／ない」を報告できます。
+        <strong data-i18n="infoTitle">データについて</strong>
+        <span data-i18n-html="infoBody">自販機情報は<a href="https://www.openstreetmap.org" target="_blank" style="color:var(--accent);text-decoration:none;">OpenStreetMap</a>由来です。実際にはもう存在しない、または未登録の可能性があります。⚠マークは情報が古い可能性のあるものです。ピンをタップして「ある／ない」を報告できます。</span>
         <div style="margin-top:8px;font-size:11px;opacity:0.75;">
-          <a href="./privacy.html" target="_blank" style="color:inherit;text-decoration:underline;">プライバシーポリシー</a>
+          <a href="./privacy.html" target="_blank" style="color:inherit;text-decoration:underline;" data-i18n="infoPrivacyLink">プライバシーポリシー</a>
           ・
-          <a href="./terms.html" target="_blank" style="color:inherit;text-decoration:underline;">利用規約</a>
+          <a href="./terms.html" target="_blank" style="color:inherit;text-decoration:underline;" data-i18n="infoTermsLink">利用規約</a>
           ・
-          <a href="#" id="export-reports-link" style="color:inherit;text-decoration:underline;">報告をエクスポート</a>
+          <a href="#" id="export-reports-link" style="color:inherit;text-decoration:underline;" data-i18n="infoExportLink">報告をエクスポート</a>
         </div>
       </div>
-      <button class="info-note-close" id="info-note-close" aria-label="閉じる">✕</button>
+      <button class="info-note-close" id="info-note-close" data-i18n-aria="ariaSheetClose" aria-label="閉じる">✕</button>
     </div>
   </div>
 
   <div id="map">
     <div class="loading" id="loading">
       <div class="spinner"></div>
-      <span>地図を読込中…</span>
+      <span data-i18n="loadingMap">地図を読込中…</span>
     </div>
   </div>
 
   <div class="status" id="status">
     <span id="status-msg"></span>
-    <button class="status-retry" id="status-retry" hidden>再試行</button>
+    <button class="status-retry" id="status-retry" data-i18n="btnRetry" hidden>再試行</button>
   </div>
 
   <div class="controls">
     <button class="btn" id="btn-list">
       <span class="btn-icon">📋</span>
-      <span>リスト</span>
+      <span data-i18n="btnList">リスト</span>
     </button>
     <button class="btn" id="btn-locate">
       <span class="btn-icon">📍</span>
-      <span>現在地</span>
+      <span data-i18n="btnLocate">現在地</span>
     </button>
     <button class="btn btn-primary" id="btn-search">
       <span class="btn-icon">🔍</span>
-      <span>この範囲で探す</span>
+      <span data-i18n="btnSearch">この範囲で探す</span>
     </button>
   </div>
 
@@ -847,12 +847,12 @@
   <div class="sheet sheet-list" id="list-sheet">
     <div class="sheet-handle"></div>
     <div class="list-header">
-      <div class="sheet-title list-title" id="list-title">近くの自販機</div>
+      <div class="sheet-title list-title" id="list-title" data-i18n="listTitleNearby">近くの自販機</div>
       <div class="list-count" id="list-count"></div>
     </div>
     <div class="list-tabs">
-      <button class="list-tab active" data-tab="nearby">近く</button>
-      <button class="list-tab" data-tab="favorites">⭐ お気に入り</button>
+      <button class="list-tab active" data-tab="nearby" data-i18n="listTabNearby">近く</button>
+      <button class="list-tab" data-tab="favorites" data-i18n="listTabFavorites">⭐ お気に入り</button>
     </div>
     <div class="list-body" id="list-body"></div>
   </div>
@@ -861,20 +861,20 @@
   <div class="sheet-backdrop" id="radius-backdrop"></div>
   <div class="sheet" id="radius-sheet">
     <div class="sheet-handle"></div>
-    <div class="sheet-title">検索範囲</div>
+    <div class="sheet-title" data-i18n="radiusSheetTitle">検索範囲</div>
     <button class="theme-option" data-radius="500">
       <div class="opt-icon" style="background:var(--accent);color:#fff;font-size:11px;font-weight:700;">500</div>
-      <div class="opt-label">500m（徒歩6分圏）</div>
+      <div class="opt-label" data-i18n="radius500">500m（徒歩6分圏）</div>
       <div class="opt-check">✓</div>
     </button>
     <button class="theme-option" data-radius="1000">
       <div class="opt-icon" style="background:var(--accent);color:#fff;font-size:11px;font-weight:700;">1k</div>
-      <div class="opt-label">1km（徒歩12分圏）</div>
+      <div class="opt-label" data-i18n="radius1k">1km（徒歩12分圏）</div>
       <div class="opt-check">✓</div>
     </button>
     <button class="theme-option" data-radius="2000">
       <div class="opt-icon" style="background:var(--accent);color:#fff;font-size:11px;font-weight:700;">2k</div>
-      <div class="opt-label">2km（徒歩25分圏）</div>
+      <div class="opt-label" data-i18n="radius2k">2km（徒歩25分圏）</div>
       <div class="opt-check">✓</div>
     </button>
   </div>
@@ -883,28 +883,28 @@
   <div class="sheet-backdrop" id="filter-backdrop"></div>
   <div class="sheet" id="filter-sheet">
     <div class="sheet-handle"></div>
-    <div class="sheet-title">表示フィルター</div>
-    <div class="sheet-section-label">種類</div>
+    <div class="sheet-title" data-i18n="filterSheetTitle">表示フィルター</div>
+    <div class="sheet-section-label" data-i18n="sectionType">種類</div>
     <button class="theme-option" data-filter-type="drinks">
       <div class="opt-icon" style="background:var(--vending);color:#fff;">🥤</div>
-      <div class="opt-label">飲食のみ（ドリンク・コーヒー・お菓子・食品）</div>
+      <div class="opt-label" data-i18n="typeDrinksLabel">飲食のみ（ドリンク・コーヒー・お菓子・食品）</div>
       <div class="opt-check">✓</div>
     </button>
     <button class="theme-option" data-filter-type="all">
       <div class="opt-icon" style="background:var(--surface-strong);">🏷️</div>
-      <div class="opt-label">全種類（タバコ・駐車券なども含む）</div>
+      <div class="opt-label" data-i18n="typeAllLabel">全種類（タバコ・駐車券なども含む）</div>
       <div class="opt-check">✓</div>
     </button>
-    <div class="sheet-section-label">データの新しさ</div>
+    <div class="sheet-section-label" data-i18n="sectionFreshness">データの新しさ</div>
     <button class="theme-option" data-stale-toggle>
       <div class="opt-icon" style="background:#ff9500;color:#fff;">⚠</div>
-      <div class="opt-label">古いデータ（8年以上更新なし）を除外</div>
+      <div class="opt-label" data-i18n="staleExcludeLabel">古いデータ（8年以上更新なし）を除外</div>
       <div class="opt-check">✓</div>
     </button>
-    <div class="sheet-section-label">あなたの報告</div>
+    <div class="sheet-section-label" data-i18n="sectionReports">あなたの報告</div>
     <button class="theme-option" id="export-reports-btn">
       <div class="opt-icon" style="background:var(--accent);color:#fff;">📥</div>
-      <div class="opt-label">報告をエクスポート（JSON）</div>
+      <div class="opt-label" data-i18n="exportReportsLabel">報告をエクスポート（JSON）</div>
     </button>
   </div>
 
@@ -912,20 +912,31 @@
   <div class="sheet-backdrop" id="sheet-backdrop"></div>
   <div class="sheet" id="sheet">
     <div class="sheet-handle"></div>
-    <div class="sheet-title">外観</div>
+    <div class="sheet-title" data-i18n="themeSheetTitle">外観</div>
     <button class="theme-option" data-theme-choice="auto">
       <div class="opt-icon auto">A</div>
-      <div class="opt-label">端末の設定に合わせる</div>
+      <div class="opt-label" data-i18n="themeAuto">端末の設定に合わせる</div>
       <div class="opt-check">✓</div>
     </button>
     <button class="theme-option" data-theme-choice="light">
       <div class="opt-icon light">☀️</div>
-      <div class="opt-label">ライト</div>
+      <div class="opt-label" data-i18n="themeLight">ライト</div>
       <div class="opt-check">✓</div>
     </button>
     <button class="theme-option" data-theme-choice="dark">
       <div class="opt-icon dark">🌙</div>
-      <div class="opt-label">ダーク</div>
+      <div class="opt-label" data-i18n="themeDark">ダーク</div>
+      <div class="opt-check">✓</div>
+    </button>
+    <div class="sheet-section-label" data-i18n="sectionLanguage">言語</div>
+    <button class="theme-option" data-lang-choice="ja">
+      <div class="opt-icon" style="background:var(--surface-strong);font-size:11px;font-weight:700;">日</div>
+      <div class="opt-label" data-i18n="langJa">日本語</div>
+      <div class="opt-check">✓</div>
+    </button>
+    <button class="theme-option" data-lang-choice="en">
+      <div class="opt-icon" style="background:var(--surface-strong);font-size:11px;font-weight:700;">EN</div>
+      <div class="opt-label" data-i18n="langEn">English</div>
       <div class="opt-check">✓</div>
     </button>
   </div>
@@ -933,6 +944,315 @@
   <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet.markercluster/1.5.3/leaflet.markercluster.min.js"></script>
   <script>
+    // === 国際化 (i18n) ===
+    const LANG_KEY = 'vendimap-lang';
+    const MESSAGES = {
+      ja: {
+        // brand / loading
+        loadingMap: '地図を読込中…',
+        loadingFailed: '地図ライブラリの読込に失敗しました',
+        preparing: '準備中',
+        countWithDrinks: '{n}件 · 飲食{d}',
+        countLabel: '失敗',
+        searching: '検索中',
+        // sheet titles
+        filterSheetTitle: '表示フィルター',
+        radiusSheetTitle: '検索範囲',
+        themeSheetTitle: '外観',
+        // section labels
+        sectionType: '種類',
+        sectionFreshness: 'データの新しさ',
+        sectionReports: 'あなたの報告',
+        sectionLanguage: '言語',
+        // filter options
+        typeDrinksLabel: '飲食のみ（ドリンク・コーヒー・お菓子・食品）',
+        typeAllLabel: '全種類（タバコ・駐車券なども含む）',
+        staleExcludeLabel: '古いデータ（8年以上更新なし）を除外',
+        exportReportsLabel: '報告をエクスポート（JSON）',
+        // radius options
+        radius500: '500m（徒歩6分圏）',
+        radius1k: '1km（徒歩12分圏）',
+        radius2k: '2km（徒歩25分圏）',
+        // theme options
+        themeAuto: '端末の設定に合わせる',
+        themeLight: 'ライト',
+        themeDark: 'ダーク',
+        // language options
+        langJa: '日本語',
+        langEn: 'English',
+        // controls
+        btnList: 'リスト',
+        btnLocate: '現在地',
+        btnSearch: 'この範囲で探す',
+        btnRetry: '再試行',
+        btnClose: '閉じる',
+        // popup
+        popupGoHere: 'ここへ移動',
+        popupSave: '保存',
+        popupShare: 'シェア',
+        popupStreetView: '実物確認',
+        popupOsmEdit: '情報修正',
+        popupTypeLabel: '種類',
+        popupHoursLabel: '営業',
+        popupHoursOpen247: '24時間',
+        popupPaymentLabel: '支払',
+        popupHandlingLabel: '取扱',
+        popupOperatorLabel: '運営',
+        popupHot: '♨️ ホット',
+        popupCold: '🧊 コールド',
+        popupReportExists: '✅ ある',
+        popupReportMissing: '❌ ない',
+        popupReportedExists: '✅ 「ある」と報告済み（タップで取消）',
+        popupReportedMissing: '❌ 「ない」と報告済み（タップで取消）',
+        popupReportHint: '現地で確認できたら教えてください',
+        popupStaleWarn: '⚠ 現地にない可能性があります',
+        popupStaleYear: '{year}年から情報が更新されていません',
+        popupDefaultName: '自動販売機',
+        popupDistance: '📍 {dist} · {walk}',
+        // walking time
+        walkMin: '徒歩{n}分',
+        // type labels
+        typeDrinks: '飲み物',
+        typeCoffee: 'コーヒー',
+        typeSweets: 'お菓子',
+        typeFood: '食品',
+        typeCigarettes: 'タバコ',
+        typeParkingTickets: '駐車券',
+        // status: location
+        statusLocating: '現在地を取得中…',
+        statusLocateFail: '現在地取得に失敗',
+        statusNoGeolocation: '位置情報が使えません',
+        statusLocateFailedShort: '取得失敗',
+        // status: search
+        statusSearchFailedGeneric: '検索に失敗しました',
+        statusTimeout: 'タイムアウトしました。範囲を狭めてみてください',
+        statusOffline: 'オフラインです。接続を確認してください',
+        statusServerBusy: 'サーバーが混雑中。少し待って再試行してください',
+        statusUnexpectedResponse: 'サーバーから想定外の応答。少し待って再試行してください',
+        statusNetworkError: 'ネットワークエラー。接続を確認してください',
+        statusCooldown: '連続検索を抑制中（{wait}秒お待ちください）',
+        statusCacheHit: 'キャッシュから表示（{n}分前のデータ）',
+        statusResultCount: '半径{r}内で{n}件{stale}',
+        statusStaleSuffix: ' · 古い{n}',
+        // status: filter
+        statusFilterDrinksOnly: '飲食のみ表示',
+        statusFilterAll: '全種類を表示',
+        statusHideStale: '古いデータを除外しました',
+        statusShowStale: '古いデータも表示します',
+        statusRadiusChanged: '検索範囲を {r} に変更しました',
+        statusPrevView: '前回の位置を表示しています',
+        // status: favorite
+        statusFavAdded: 'お気に入りに追加',
+        statusFavRemoved: 'お気に入りから削除',
+        // status: share
+        statusShareCopied: 'クリップボードにコピーしました',
+        statusShareFailed: 'シェアに失敗しました',
+        // status: compass
+        statusCompassOn: '向き表示をオンにしました',
+        statusCompassOff: '向き表示をオフにしました',
+        statusCompassUnavailable: '向きセンサーが使えません',
+        statusCompassPermissionRequired: '向きセンサーの許可が必要です',
+        // status: reports
+        statusReportExists: '「ある」と報告しました',
+        statusReportMissing: '「ない」と報告しました',
+        statusReportCleared: '報告を取り消しました',
+        statusExportSuccess: '{n}件の報告をエクスポートしました',
+        statusExportEmpty: '報告がまだありません',
+        statusLangChanged: '言語を切り替えました',
+        // list sheet
+        listTitleNearby: '近くの自販機',
+        listTitleFavorites: 'お気に入り',
+        listTabNearby: '近く',
+        listTabFavorites: '⭐ お気に入り',
+        listEmptyNearby: '該当する自販機がありません',
+        listEmptyFavorites: 'お気に入りはまだありません',
+        listEmptyFavoritesHint: 'ピンをタップして★を押すと保存できます',
+        // info note
+        infoTitle: 'データについて',
+        infoBody: '自販機情報は{osm}由来です。実際にはもう存在しない、または未登録の可能性があります。⚠マークは情報が古い可能性のあるものです。ピンをタップして「ある／ない」を報告できます。',
+        infoPrivacyLink: 'プライバシーポリシー',
+        infoTermsLink: '利用規約',
+        infoExportLink: '報告をエクスポート',
+        // ARIA
+        ariaSheetClose: '閉じる',
+        ariaBtnRadius: '検索範囲',
+        ariaBtnFilter: 'フィルター',
+        ariaBtnCompass: '向きを表示',
+        ariaBtnTheme: 'テーマ切替',
+        ariaFav: 'お気に入り',
+        ariaShare: 'シェア',
+        ariaStreetView: 'ストリートビューで確認',
+        ariaOsmEdit: 'OpenStreetMapで編集',
+        ariaReportExists: 'ここに自販機があると報告',
+        ariaReportMissing: 'ここに自販機がないと報告',
+        ariaFilterStatus: 'フィルター: {type}・{stale}',
+        ariaFilterTypeDrinks: '飲食のみ',
+        ariaFilterTypeAll: '全種類',
+        ariaFilterStaleHide: '古いデータ除外',
+        ariaFilterStaleShow: '全データ表示',
+      },
+      en: {
+        loadingMap: 'Loading map…',
+        loadingFailed: 'Failed to load the map library',
+        preparing: 'Loading',
+        countWithDrinks: '{n} · drinks {d}',
+        countLabel: 'Failed',
+        searching: 'Searching',
+        filterSheetTitle: 'Display filters',
+        radiusSheetTitle: 'Search radius',
+        themeSheetTitle: 'Appearance',
+        sectionType: 'Type',
+        sectionFreshness: 'Data freshness',
+        sectionReports: 'Your reports',
+        sectionLanguage: 'Language',
+        typeDrinksLabel: 'Drinks only (drink, coffee, sweets, food)',
+        typeAllLabel: 'All types (tobacco, parking tickets, etc.)',
+        staleExcludeLabel: 'Hide stale data (not updated for 8+ years)',
+        exportReportsLabel: 'Export reports (JSON)',
+        radius500: '500m (≈ 6 min walk)',
+        radius1k: '1km (≈ 12 min walk)',
+        radius2k: '2km (≈ 25 min walk)',
+        themeAuto: 'System default',
+        themeLight: 'Light',
+        themeDark: 'Dark',
+        langJa: '日本語',
+        langEn: 'English',
+        btnList: 'List',
+        btnLocate: 'Locate',
+        btnSearch: 'Search this area',
+        btnRetry: 'Retry',
+        btnClose: 'Close',
+        popupGoHere: 'Directions',
+        popupSave: 'Save',
+        popupShare: 'Share',
+        popupStreetView: 'Street View',
+        popupOsmEdit: 'Edit on OSM',
+        popupTypeLabel: 'Type',
+        popupHoursLabel: 'Hours',
+        popupHoursOpen247: '24 hours',
+        popupPaymentLabel: 'Payment',
+        popupHandlingLabel: 'Serves',
+        popupOperatorLabel: 'Operator',
+        popupHot: '♨️ Hot',
+        popupCold: '🧊 Cold',
+        popupReportExists: '✅ It exists',
+        popupReportMissing: '❌ Not there',
+        popupReportedExists: '✅ Reported as existing (tap to undo)',
+        popupReportedMissing: '❌ Reported as missing (tap to undo)',
+        popupReportHint: 'Tell us when you confirm at the location',
+        popupStaleWarn: '⚠ May no longer be on site',
+        popupStaleYear: 'No updates since {year}',
+        popupDefaultName: 'Vending machine',
+        popupDistance: '📍 {dist} · {walk}',
+        walkMin: '{n} min walk',
+        typeDrinks: 'Drinks',
+        typeCoffee: 'Coffee',
+        typeSweets: 'Sweets',
+        typeFood: 'Food',
+        typeCigarettes: 'Tobacco',
+        typeParkingTickets: 'Parking',
+        statusLocating: 'Getting your location…',
+        statusLocateFail: 'Failed to get location',
+        statusNoGeolocation: 'Geolocation unavailable',
+        statusLocateFailedShort: 'No location',
+        statusSearchFailedGeneric: 'Search failed',
+        statusTimeout: 'Timed out. Try a smaller radius',
+        statusOffline: 'You are offline. Check your connection',
+        statusServerBusy: 'Server is busy. Try again in a moment',
+        statusUnexpectedResponse: 'Unexpected server response. Try again shortly',
+        statusNetworkError: 'Network error. Check your connection',
+        statusCooldown: 'Cooling down… please wait {wait}s',
+        statusCacheHit: 'Showing cache ({n} min old)',
+        statusResultCount: '{n} machines within {r}{stale}',
+        statusStaleSuffix: ' · stale {n}',
+        statusFilterDrinksOnly: 'Showing drinks only',
+        statusFilterAll: 'Showing all types',
+        statusHideStale: 'Hiding stale data',
+        statusShowStale: 'Showing stale data',
+        statusRadiusChanged: 'Search radius set to {r}',
+        statusPrevView: 'Showing your last view',
+        statusFavAdded: 'Saved',
+        statusFavRemoved: 'Removed from saved',
+        statusShareCopied: 'Copied to clipboard',
+        statusShareFailed: 'Share failed',
+        statusCompassOn: 'Compass on',
+        statusCompassOff: 'Compass off',
+        statusCompassUnavailable: 'Heading sensor unavailable',
+        statusCompassPermissionRequired: 'Heading sensor permission required',
+        statusReportExists: 'Reported as existing',
+        statusReportMissing: 'Reported as missing',
+        statusReportCleared: 'Report cleared',
+        statusExportSuccess: 'Exported {n} reports',
+        statusExportEmpty: 'No reports yet',
+        statusLangChanged: 'Language changed',
+        listTitleNearby: 'Nearby machines',
+        listTitleFavorites: 'Saved',
+        listTabNearby: 'Nearby',
+        listTabFavorites: '⭐ Saved',
+        listEmptyNearby: 'No matching machines',
+        listEmptyFavorites: 'Nothing saved yet',
+        listEmptyFavoritesHint: 'Tap a pin and press ★ to save it',
+        infoTitle: 'About the data',
+        infoBody: 'Vending machine data comes from {osm}. Some pins may no longer exist, and new ones may be missing. The ⚠ mark means the data could be stale. Tap a pin to report whether it exists.',
+        infoPrivacyLink: 'Privacy policy',
+        infoTermsLink: 'Terms',
+        infoExportLink: 'Export reports',
+        ariaSheetClose: 'Close',
+        ariaBtnRadius: 'Search radius',
+        ariaBtnFilter: 'Filter',
+        ariaBtnCompass: 'Heading',
+        ariaBtnTheme: 'Theme',
+        ariaFav: 'Save',
+        ariaShare: 'Share',
+        ariaStreetView: 'Open Street View',
+        ariaOsmEdit: 'Edit in OpenStreetMap',
+        ariaReportExists: 'Report that this exists',
+        ariaReportMissing: 'Report that this is missing',
+        ariaFilterStatus: 'Filter: {type}, {stale}',
+        ariaFilterTypeDrinks: 'drinks only',
+        ariaFilterTypeAll: 'all types',
+        ariaFilterStaleHide: 'hiding stale data',
+        ariaFilterStaleShow: 'showing all data',
+      },
+    };
+    function detectLang() {
+      const stored = localStorage.getItem(LANG_KEY);
+      if (stored === 'ja' || stored === 'en') return stored;
+      return (navigator.language || 'ja').toLowerCase().startsWith('en') ? 'en' : 'ja';
+    }
+    let currentLang = detectLang();
+    function t(key, params) {
+      let s = MESSAGES[currentLang]?.[key] ?? MESSAGES.ja[key] ?? key;
+      if (params) {
+        for (const k of Object.keys(params)) {
+          s = s.replaceAll('{' + k + '}', String(params[k]));
+        }
+      }
+      return s;
+    }
+    function applyStaticI18n() {
+      document.documentElement.lang = currentLang;
+      document.title = currentLang === 'en' ? 'VendiMap - find nearby vending machines' : 'VendiMap';
+      document.querySelectorAll('[data-i18n]').forEach(el => {
+        const key = el.dataset.i18n;
+        if (key) el.textContent = t(key);
+      });
+      document.querySelectorAll('[data-i18n-aria]').forEach(el => {
+        const key = el.dataset.i18nAria;
+        if (key) el.setAttribute('aria-label', t(key));
+      });
+      document.querySelectorAll('[data-i18n-html]').forEach(el => {
+        const key = el.dataset.i18nHtml;
+        if (key) el.innerHTML = t(key, { osm: '<a href="https://www.openstreetmap.org" target="_blank" style="color:var(--accent);text-decoration:none;">OpenStreetMap</a>' });
+      });
+    }
+    function setLang(lang) {
+      if (lang !== 'ja' && lang !== 'en') return;
+      currentLang = lang;
+      localStorage.setItem(LANG_KEY, lang);
+      applyStaticI18n();
+    }
+
     const statusEl = document.getElementById('status');
     const statusMsgEl = document.getElementById('status-msg');
     const statusRetryEl = document.getElementById('status-retry');
@@ -1051,7 +1371,7 @@
     function handleExportReports(e) {
       e?.preventDefault();
       const count = exportReports();
-      showStatus(count > 0 ? `${count}件の報告をエクスポートしました` : '報告がまだありません');
+      showStatus(count > 0 ? t('statusExportSuccess', { n: count }) : t('statusExportEmpty'));
       trackEvent('reports-export', { count });
     }
     document.getElementById('export-reports-link')?.addEventListener('click', handleExportReports);
@@ -1064,9 +1384,23 @@
     function closeSheet() { sheet.classList.remove('show'); backdrop.classList.remove('show'); }
     document.getElementById('btn-theme').addEventListener('click', openSheet);
     backdrop.addEventListener('click', closeSheet);
-    document.querySelectorAll('.theme-option').forEach(opt => {
+    document.querySelectorAll('[data-theme-choice]').forEach(opt => {
       opt.addEventListener('click', () => {
         setTheme(opt.dataset.themeChoice);
+        setTimeout(closeSheet, 150);
+      });
+    });
+    document.querySelectorAll('[data-lang-choice]').forEach(opt => {
+      opt.addEventListener('click', () => {
+        if (opt.dataset.langChoice !== currentLang) {
+          setLang(opt.dataset.langChoice);
+          showStatus(t('statusLangChanged'));
+          // 動的に生成される表示（カウント、ステータス）を再描画
+          renderMarkers();
+          renderList();
+          applyFilterButtonUI();
+          applyRadiusUI();
+        }
         setTimeout(closeSheet, 150);
       });
     });
@@ -1087,16 +1421,18 @@
       const staleMark = hideStale ? '' : ' ⚠';
       btnFilter.textContent = `${typeIcon}${staleMark}`;
       btnFilter.classList.toggle('active', filterDrinkOnly);
-      btnFilter.setAttribute('aria-label',
-        `フィルター: ${filterDrinkOnly ? '飲食のみ' : '全種類'}${hideStale ? '・古いデータ除外' : '・全データ表示'}`);
+      btnFilter.setAttribute('aria-label', t('ariaFilterStatus', {
+        type: t(filterDrinkOnly ? 'ariaFilterTypeDrinks' : 'ariaFilterTypeAll'),
+        stale: t(hideStale ? 'ariaFilterStaleHide' : 'ariaFilterStaleShow'),
+      }));
     }
     applyFilterButtonUI();
 
     function openFilterSheet() {
       // 現在の選択状態を反映
       filterSheet.querySelectorAll('[data-filter-type]').forEach(b => {
-        const t = b.dataset.filterType;
-        b.classList.toggle('active', (t === 'drinks') === filterDrinkOnly);
+        const ft = b.dataset.filterType;
+        b.classList.toggle('active', (ft === 'drinks') === filterDrinkOnly);
       });
       filterSheet.querySelector('[data-stale-toggle]')?.classList.toggle('active', hideStale);
       filterSheet.classList.add('show');
@@ -1122,7 +1458,7 @@
         if (next !== filterDrinkOnly) {
           filterDrinkOnly = next;
           localStorage.setItem(FILTER_KEY, String(filterDrinkOnly));
-          commitFilterChange(filterDrinkOnly ? '飲食のみ表示' : '全種類を表示');
+          commitFilterChange(t(filterDrinkOnly ? 'statusFilterDrinksOnly' : 'statusFilterAll'));
         }
         setTimeout(closeFilterSheet, 120);
       });
@@ -1133,7 +1469,7 @@
       localStorage.setItem(HIDE_STALE_KEY, String(hideStale));
       // シートを開いたまま、現在のチェック状態だけ更新
       e.currentTarget.classList.toggle('active', hideStale);
-      commitFilterChange(hideStale ? '古いデータを除外しました' : '古いデータも表示します');
+      commitFilterChange(t(hideStale ? 'statusHideStale' : 'statusShowStale'));
     });
 
     // === 起動スプラッシュを一定時間後に閉じる ===
@@ -1235,7 +1571,7 @@
     }
     function applyRadiusUI() {
       btnRadius.textContent = `📍 ${radiusLabel(SEARCH_RADIUS_M)}`;
-      btnRadius.setAttribute('aria-label', `検索範囲: ${radiusLabel(SEARCH_RADIUS_M)}`);
+      btnRadius.setAttribute('aria-label', `${t('ariaBtnRadius')}: ${radiusLabel(SEARCH_RADIUS_M)}`);
       document.querySelectorAll('[data-radius]').forEach(opt => {
         opt.classList.toggle('active', Number(opt.dataset.radius) === SEARCH_RADIUS_M);
       });
@@ -1251,7 +1587,7 @@
         SEARCH_RADIUS_M = Number(opt.dataset.radius);
         localStorage.setItem(RADIUS_KEY, String(SEARCH_RADIUS_M));
         applyRadiusUI();
-        showStatus(`検索範囲を ${radiusLabel(SEARCH_RADIUS_M)} に変更しました`);
+        showStatus(t('statusRadiusChanged', { r: radiusLabel(SEARCH_RADIUS_M) }));
         setTimeout(closeRadiusSheet, 150);
         // 現在地が分かっていればそこから、無ければ地図中心から再検索
         if (currentPos) {
@@ -1346,7 +1682,7 @@
 
     // === シェア ===
     async function shareVending(item) {
-      const name = item.tags.name || '自動販売機';
+      const name = item.tags.name || t('popupDefaultName');
       const url = `https://www.google.com/maps/search/?api=1&query=${item.lat},${item.lng}`;
       const text = `${item.emoji} ${name}\n${url}`;
       if (navigator.share) {
@@ -1357,10 +1693,10 @@
       } else {
         try {
           await navigator.clipboard.writeText(text);
-          showStatus('クリップボードにコピーしました');
+          showStatus(t('statusShareCopied'));
           trackEvent('share', { method: 'clipboard' });
         } catch (e) {
-          showStatus('シェアに失敗しました', 3000);
+          showStatus(t('statusShareFailed'), 3000);
         }
       }
     }
@@ -1386,11 +1722,11 @@
     listBackdrop.addEventListener('click', closeListSheet);
 
     // タブ切替
-    document.querySelectorAll('.list-tab').forEach(t => {
-      t.addEventListener('click', () => {
-        currentTab = t.dataset.tab;
-        document.querySelectorAll('.list-tab').forEach(x => x.classList.toggle('active', x === t));
-        listTitleEl.textContent = currentTab === 'favorites' ? 'お気に入り' : '近くの自販機';
+    document.querySelectorAll('.list-tab').forEach(tab => {
+      tab.addEventListener('click', () => {
+        currentTab = tab.dataset.tab;
+        document.querySelectorAll('.list-tab').forEach(x => x.classList.toggle('active', x === tab));
+        listTitleEl.textContent = t(currentTab === 'favorites' ? 'listTitleFavorites' : 'listTitleNearby');
         renderList();
       });
     });
@@ -1435,11 +1771,11 @@
         try {
           const res = await DeviceOrientationEvent.requestPermission();
           if (res !== 'granted') {
-            showStatus('向きセンサーの許可が必要です', 3000);
+            showStatus(t('statusCompassPermissionRequired'), 3000);
             return false;
           }
         } catch (err) {
-          showStatus('向きセンサーが使えません', 3000);
+          showStatus(t('statusCompassUnavailable'), 3000);
           return false;
         }
       }
@@ -1463,13 +1799,13 @@
         stopCompass();
         compassActive = false;
         btnCompass.classList.remove('active');
-        showStatus('向き表示をオフにしました');
+        showStatus(t('statusCompassOff'));
       } else {
         const ok = await startCompass();
         if (ok) {
           compassActive = true;
           btnCompass.classList.add('active');
-          showStatus('向き表示をオンにしました');
+          showStatus(t('statusCompassOn'));
         }
       }
     });
@@ -1494,30 +1830,52 @@
     function formatWalkTime(m) {
       // 徒歩平均80m/分
       const minutes = Math.max(1, Math.round(m / 80));
-      return `徒歩${minutes}分`;
+      return t('walkMin', { n: minutes });
     }
 
     // 支払い方法を日本語に
     const PAYMENT_LABELS = {
-      cash: '現金', coins: '硬貨', notes: '紙幣',
-      credit_cards: 'クレジット', debit_cards: 'デビット',
-      visa: 'Visa', mastercard: 'Mastercard', american_express: 'AMEX', jcb: 'JCB',
-      nfc: '電子マネー', electronic_purses: '電子マネー', contactless: '非接触',
-      qr_code: 'QRコード',
-      transportation_cards: '交通系IC', suica: 'Suica', pasmo: 'PASMO', icoca: 'ICOCA',
-      paypay: 'PayPay', line_pay: 'LINE Pay', rakuten_pay: '楽天ペイ', d_barai: 'd払い', merpay: 'メルペイ',
-      id: 'iD', quicpay: 'QUICPay', edy: 'Edy', nanaco: 'nanaco', waon: 'WAON',
-      apple_pay: 'Apple Pay', google_pay: 'Google Pay',
-      coins_and_notes: '現金',
+      cash: { ja: '現金', en: 'Cash' },
+      coins: { ja: '硬貨', en: 'Coins' },
+      notes: { ja: '紙幣', en: 'Bills' },
+      credit_cards: { ja: 'クレジット', en: 'Credit card' },
+      debit_cards: { ja: 'デビット', en: 'Debit card' },
+      visa: { ja: 'Visa', en: 'Visa' },
+      mastercard: { ja: 'Mastercard', en: 'Mastercard' },
+      american_express: { ja: 'AMEX', en: 'AMEX' },
+      jcb: { ja: 'JCB', en: 'JCB' },
+      nfc: { ja: '電子マネー', en: 'E-money (NFC)' },
+      electronic_purses: { ja: '電子マネー', en: 'E-money' },
+      contactless: { ja: '非接触', en: 'Contactless' },
+      qr_code: { ja: 'QRコード', en: 'QR code' },
+      transportation_cards: { ja: '交通系IC', en: 'Transit IC' },
+      suica: { ja: 'Suica', en: 'Suica' },
+      pasmo: { ja: 'PASMO', en: 'PASMO' },
+      icoca: { ja: 'ICOCA', en: 'ICOCA' },
+      paypay: { ja: 'PayPay', en: 'PayPay' },
+      line_pay: { ja: 'LINE Pay', en: 'LINE Pay' },
+      rakuten_pay: { ja: '楽天ペイ', en: 'Rakuten Pay' },
+      d_barai: { ja: 'd払い', en: 'd-barai' },
+      merpay: { ja: 'メルペイ', en: 'Merpay' },
+      id: { ja: 'iD', en: 'iD' },
+      quicpay: { ja: 'QUICPay', en: 'QUICPay' },
+      edy: { ja: 'Edy', en: 'Edy' },
+      nanaco: { ja: 'nanaco', en: 'nanaco' },
+      waon: { ja: 'WAON', en: 'WAON' },
+      apple_pay: { ja: 'Apple Pay', en: 'Apple Pay' },
+      google_pay: { ja: 'Google Pay', en: 'Google Pay' },
+      coins_and_notes: { ja: '現金', en: 'Cash' },
     };
     function translatePayment(key) {
-      return PAYMENT_LABELS[key] || key;
+      const entry = PAYMENT_LABELS[key];
+      if (!entry) return key;
+      return entry[currentLang] || entry.ja || key;
     }
 
     function openNavigation(lat, lng, name) {
       // iOS なら Apple Maps、それ以外は Google Maps の徒歩ルート
       const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent);
-      const label = encodeURIComponent(name || '自動販売機');
+      const label = encodeURIComponent(name || t('popupDefaultName'));
       let url;
       if (isIOS) {
         // Apple Maps（dirflg=w で徒歩）
@@ -1532,7 +1890,7 @@
 
     function init() {
       if (typeof L === 'undefined') {
-        loadingEl.innerHTML = '<span>地図ライブラリの読込に失敗しました</span>';
+        loadingEl.innerHTML = `<span>${t('loadingFailed')}</span>`;
         countEl.textContent = 'エラー';
         return;
       }
@@ -1624,8 +1982,8 @@
       }
 
       function locate() {
-        if (!navigator.geolocation) { showStatus('位置情報が使えません'); return; }
-        showStatus('現在地を取得中…', 0);
+        if (!navigator.geolocation) { showStatus(t('statusNoGeolocation')); return; }
+        showStatus(t('statusLocating'), 0);
         navigator.geolocation.getCurrentPosition(
           (pos) => {
             const { latitude, longitude } = pos.coords;
@@ -1642,8 +2000,8 @@
             trackEvent('locate-success');
           },
           (err) => {
-            showStatus('現在地取得に失敗', 3000);
-            countEl.textContent = '取得失敗';
+            showStatus(t('statusLocateFail'), 3000);
+            countEl.textContent = t('statusLocateFailedShort');
             trackEvent('locate-error', { code: err.code });
           }
         );
@@ -1667,7 +2025,7 @@
             renderMarkers();
             renderList();
             const ageMin = Math.max(1, Math.round((Date.now() - cached.timestamp) / 60000));
-            showStatus(`キャッシュから表示（${ageMin}分前のデータ）`);
+            showStatus(t('statusCacheHit', { n: ageMin }));
             trackEvent('search-cache-hit', { ageMin, radius: SEARCH_RADIUS_M });
             return;
           }
@@ -1678,15 +2036,15 @@
           const elapsed = Date.now() - lastSearchAt;
           if (elapsed < SEARCH_COOLDOWN_MS) {
             const wait = Math.ceil((SEARCH_COOLDOWN_MS - elapsed) / 1000);
-            showStatus(`連続検索を抑制中（${wait}秒お待ちください）`);
+            showStatus(t('statusCooldown', { wait }));
             return;
           }
         }
         lastSearchAt = Date.now();
 
         const query = `[out:json][timeout:25];node["amenity"="vending_machine"](around:${SEARCH_RADIUS_M},${lat},${lng});out meta;`;
-        showStatus('検索中…', 0);
-        countEl.textContent = '検索中';
+        showStatus(t('searching') + '…', 0);
+        countEl.textContent = t('searching');
 
         const retry = () => searchVending(lat, lng, { forceFresh: true, skipCooldown: true });
         const controller = new AbortController();
@@ -1729,29 +2087,29 @@
           let msg;
           let reason = e.name || e.message || 'unknown';
           if (e.name === 'AbortError') {
-            msg = 'タイムアウトしました。範囲を狭めてみてください';
+            msg = t('statusTimeout');
             reason = 'timeout';
           } else if (e.message === 'OFFLINE') {
-            msg = 'オフラインです。接続を確認してください';
+            msg = t('statusOffline');
             reason = 'offline';
           } else if (e.status === 429 || e.status === 503 || e.status === 504) {
-            msg = 'サーバーが混雑中。少し待って再試行してください';
+            msg = t('statusServerBusy');
             reason = 'http_' + e.status;
           } else if (e.message === 'OVERPASS_OVERLOAD') {
-            msg = 'サーバーが混雑中。少し待って再試行してください';
+            msg = t('statusServerBusy');
             reason = 'overload';
           } else if (e.message === 'PARSE_ERROR') {
-            msg = 'サーバーから想定外の応答。少し待って再試行してください';
+            msg = t('statusUnexpectedResponse');
             reason = 'parse_error';
           } else if (e instanceof TypeError) {
-            msg = 'ネットワークエラー。接続を確認してください';
+            msg = t('statusNetworkError');
             reason = 'network';
           } else {
-            msg = '検索に失敗しました';
+            msg = t('statusSearchFailedGeneric');
             reason = 'unknown:' + (e.name || e.message);
           }
           showStatus(msg, { ms: 5000, type: 'error', retry });
-          countEl.textContent = '失敗';
+          countEl.textContent = t('countLabel');
           trackEvent('search-error', { reason, status: e.status });
         } finally {
           clearTimeout(timeoutId);
@@ -1794,9 +2152,9 @@
           r._marker = marker;
           vendingMarkers.addLayer(marker);
         });
-        countEl.textContent = `${items.length}件 · 飲食${drinkCount}`;
-        const staleNote = staleCount > 0 ? ` · 古い${staleCount}` : '';
-        showStatus(`半径${radiusLabel(SEARCH_RADIUS_M)}内で${items.length}件${staleNote}`);
+        countEl.textContent = t('countWithDrinks', { n: items.length, d: drinkCount });
+        const staleNote = staleCount > 0 ? t('statusStaleSuffix', { n: staleCount }) : '';
+        showStatus(t('statusResultCount', { n: items.length, r: radiusLabel(SEARCH_RADIUS_M), stale: staleNote }));
       };
 
       // ポップアップのHTMLを生成
@@ -1805,32 +2163,33 @@
         const payments = Object.keys(tags)
           .filter(k => k.startsWith('payment:') && tags[k] === 'yes')
           .map(k => translatePayment(k.replace('payment:', '')));
-        const typeLabel = { drinks: '飲み物', coffee: 'コーヒー', sweets: 'お菓子', food: '食品', cigarettes: 'タバコ', parking_tickets: '駐車券' }[r.type] || r.type;
-        const name = tags.name || '自動販売機';
+        const typeKeyMap = { drinks: 'typeDrinks', coffee: 'typeCoffee', sweets: 'typeSweets', food: 'typeFood', cigarettes: 'typeCigarettes', parking_tickets: 'typeParkingTickets' };
+        const typeLabel = typeKeyMap[r.type] ? t(typeKeyMap[r.type]) : r.type;
+        const name = tags.name || t('popupDefaultName');
         let distanceLabel = '';
         if (currentPos) {
           const dist = distanceMeters(currentPos.lat, currentPos.lng, r.lat, r.lng);
-          distanceLabel = `<div class="popup-distance">📍 ${formatDistance(dist)} · ${formatWalkTime(dist)}</div>`;
+          distanceLabel = `<div class="popup-distance">${t('popupDistance', { dist: formatDistance(dist), walk: formatWalkTime(dist) })}</div>`;
         }
         const hot = tags['drink:hot'] === 'yes';
         const cold = tags['drink:cold'] === 'yes';
         let tempLabel = '';
         if (hot || cold) {
           const parts = [];
-          if (hot) parts.push('♨️ ホット');
-          if (cold) parts.push('🧊 コールド');
-          tempLabel = `<div class="popup-row"><strong>取扱</strong>: ${parts.join(' / ')}</div>`;
+          if (hot) parts.push(t('popupHot'));
+          if (cold) parts.push(t('popupCold'));
+          tempLabel = `<div class="popup-row"><strong>${t('popupHandlingLabel')}</strong>: ${parts.join(' / ')}</div>`;
         }
         let hoursLabel = '';
         if (tags.opening_hours === '24/7') {
-          hoursLabel = `<div class="popup-row"><strong>営業</strong>: 24時間</div>`;
+          hoursLabel = `<div class="popup-row"><strong>${t('popupHoursLabel')}</strong>: ${t('popupHoursOpen247')}</div>`;
         } else if (tags.opening_hours) {
-          hoursLabel = `<div class="popup-row"><strong>営業</strong>: ${tags.opening_hours}</div>`;
+          hoursLabel = `<div class="popup-row"><strong>${t('popupHoursLabel')}</strong>: ${tags.opening_hours}</div>`;
         }
         let staleWarn = '';
         if (r.isStale && r.timestamp) {
           const year = r.timestamp.getFullYear();
-          staleWarn = `<div class="popup-stale">⚠ 現地にない可能性があります<br><span style="font-weight:400;opacity:0.85;">${year}年から情報が更新されていません</span></div>`;
+          staleWarn = `<div class="popup-stale">${t('popupStaleWarn')}<br><span style="font-weight:400;opacity:0.85;">${t('popupStaleYear', { year })}</span></div>`;
         }
         const fav = isFavorite(r.id);
         const favBtnClass = fav ? ' fav-on' : '';
@@ -1839,45 +2198,45 @@
         const existsActive = report?.type === 'exists' ? ' active exists' : '';
         const missingActive = report?.type === 'missing' ? ' active missing' : '';
         const reportHint = report
-          ? `<div class="popup-report-hint">${report.type === 'exists' ? '✅ 「ある」と報告済み（タップで取消）' : '❌ 「ない」と報告済み（タップで取消）'}</div>`
-          : '<div class="popup-report-hint">現地で確認できたら教えてください</div>';
+          ? `<div class="popup-report-hint">${t(report.type === 'exists' ? 'popupReportedExists' : 'popupReportedMissing')}</div>`
+          : `<div class="popup-report-hint">${t('popupReportHint')}</div>`;
         return `
           <div class="popup-title">${r.emoji} ${name}</div>
           ${distanceLabel}
-          <div class="popup-row"><strong>種類</strong>: ${typeLabel}</div>
+          <div class="popup-row"><strong>${t('popupTypeLabel')}</strong>: ${typeLabel}</div>
           ${tempLabel}
           ${hoursLabel}
-          ${tags.operator ? `<div class="popup-row"><strong>運営</strong>: ${tags.operator}</div>` : ''}
-          ${payments.length ? `<div class="popup-row"><strong>支払</strong>: ${payments.join(' / ')}</div>` : ''}
+          ${tags.operator ? `<div class="popup-row"><strong>${t('popupOperatorLabel')}</strong>: ${tags.operator}</div>` : ''}
+          ${payments.length ? `<div class="popup-row"><strong>${t('popupPaymentLabel')}</strong>: ${payments.join(' / ')}</div>` : ''}
           ${staleWarn}
           <button class="popup-nav-btn" id="nav-${r.id}">
-            <span>🧭</span><span>ここへ移動</span>
+            <span>🧭</span><span>${t('popupGoHere')}</span>
           </button>
           <div class="popup-action-row">
             <button class="popup-action-btn${favBtnClass}" id="fav-${r.id}">
               <span class="action-icon">${favBtnIcon}</span>
-              <span class="action-label">保存</span>
+              <span class="action-label">${t('popupSave')}</span>
             </button>
             <button class="popup-action-btn" id="share-${r.id}">
               <span class="action-icon">📤</span>
-              <span class="action-label">シェア</span>
+              <span class="action-label">${t('popupShare')}</span>
             </button>
             <a class="popup-action-btn" id="streetview-${r.id}"
                href="https://www.google.com/maps?layer=c&cbll=${r.lat},${r.lng}"
                target="_blank" rel="noopener noreferrer">
               <span class="action-icon">📷</span>
-              <span class="action-label">実物確認</span>
+              <span class="action-label">${t('popupStreetView')}</span>
             </a>
             <a class="popup-action-btn" id="osmedit-${r.id}"
                href="https://www.openstreetmap.org/edit?node=${r.id}"
                target="_blank" rel="noopener noreferrer">
               <span class="action-icon">✏️</span>
-              <span class="action-label">情報修正</span>
+              <span class="action-label">${t('popupOsmEdit')}</span>
             </a>
           </div>
           <div class="popup-reports">
-            <button class="popup-report-btn${existsActive}" id="report-exists-${r.id}" aria-label="ここに自販機があると報告">✅ ある</button>
-            <button class="popup-report-btn${missingActive}" id="report-missing-${r.id}" aria-label="ここに自販機がないと報告">❌ ない</button>
+            <button class="popup-report-btn${existsActive}" id="report-exists-${r.id}" aria-label="${t('ariaReportExists')}">${t('popupReportExists')}</button>
+            <button class="popup-report-btn${missingActive}" id="report-missing-${r.id}" aria-label="${t('ariaReportMissing')}">${t('popupReportMissing')}</button>
           </div>
           ${reportHint}
         `;
@@ -1888,7 +2247,7 @@
         const navBtn = document.getElementById(`nav-${r.id}`);
         if (navBtn) {
           navBtn.addEventListener('click', () => {
-            openNavigation(r.lat, r.lng, r.tags.name || '自動販売機');
+            openNavigation(r.lat, r.lng, r.tags.name || t('popupDefaultName'));
           });
         }
         const favBtn = document.getElementById(`fav-${r.id}`);
@@ -1898,7 +2257,7 @@
             const iconEl = favBtn.querySelector('.action-icon');
             if (iconEl) iconEl.textContent = nowFav ? '★' : '☆';
             favBtn.classList.toggle('fav-on', nowFav);
-            showStatus(nowFav ? 'お気に入りに追加' : 'お気に入りから削除');
+            showStatus(t(nowFav ? 'statusFavAdded' : 'statusFavRemoved'));
             trackEvent(nowFav ? 'favorite-add' : 'favorite-remove');
             // ピンの見た目を更新
             renderMarkers();
@@ -1914,7 +2273,7 @@
         document.getElementById(`osmedit-${r.id}`)?.addEventListener('click', () => trackEvent('open-osm-edit'));
         const onReportClick = (type) => {
           const after = setReport(r, type);
-          const action = after ? (type === 'exists' ? '「ある」と報告しました' : '「ない」と報告しました') : '報告を取り消しました';
+          const action = after ? t(type === 'exists' ? 'statusReportExists' : 'statusReportMissing') : t('statusReportCleared');
           showStatus(action);
           trackEvent(after ? 'report-' + type : 'report-clear');
           renderMarkers();
@@ -1947,17 +2306,18 @@
             items.sort((a, b) => a._distance - b._distance);
           }
         }
-        listCountEl.textContent = `${items.length}件`;
+        listCountEl.textContent = currentLang === 'en' ? items.length : `${items.length}件`;
         if (items.length === 0) {
           const msg = currentTab === 'favorites'
-            ? '⭐ お気に入りはまだありません<br><span style="font-size:12px;opacity:0.8;">ピンをタップして★を押すと保存できます</span>'
-            : '該当する自販機がありません';
+            ? `⭐ ${t('listEmptyFavorites')}<br><span style="font-size:12px;opacity:0.8;">${t('listEmptyFavoritesHint')}</span>`
+            : t('listEmptyNearby');
           listBody.innerHTML = `<div class="list-empty">${msg}</div>`;
           return;
         }
         const html = items.map(r => {
-          const name = r.tags.name || '自動販売機';
-          const typeLabel = { drinks: '飲み物', coffee: 'コーヒー', sweets: 'お菓子', food: '食品', cigarettes: 'タバコ', parking_tickets: '駐車券' }[r.type] || r.type;
+          const name = r.tags.name || t('popupDefaultName');
+          const typeKeyMap = { drinks: 'typeDrinks', coffee: 'typeCoffee', sweets: 'typeSweets', food: 'typeFood', cigarettes: 'typeCigarettes', parking_tickets: 'typeParkingTickets' };
+          const typeLabel = typeKeyMap[r.type] ? t(typeKeyMap[r.type]) : r.type;
           const distLabel = r._distance != null ? formatDistance(r._distance) : '';
           const dimClass = r.isDrink ? '' : ' dim';
           const staleDot = r.isStale ? '<div class="stale-dot">⚠</div>' : '';
@@ -2008,13 +2368,14 @@
 
       // 起動: 前回ビューがあれば復元して周辺検索、なければ現在地取得から開始
       if (savedView) {
-        showStatus('前回の位置を表示しています');
+        showStatus(t('statusPrevView'));
         searchVending(savedView.lat, savedView.lng);
       } else {
         locate();
       }
     }
 
+    applyStaticI18n();
     if (typeof L !== 'undefined') { init(); } else { window.addEventListener('load', init); }
 
     // === Service Worker登録（PWA・オフライン対応） ===
