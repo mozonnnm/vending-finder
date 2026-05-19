@@ -19,9 +19,11 @@
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css" />
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet.markercluster/1.5.3/MarkerCluster.min.css" />
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet.markercluster/1.5.3/MarkerCluster.Default.min.css" />
-  <!-- 計測（GoatCounter）— プライバシーポリシー参照 -->
+  <!-- 計測（GoatCounter）— プライバシーポリシー参照。
+       async ではなく defer にしているのは、async だとサードパーティ側のレイテンシで
+       window.load の発火が遅延しスプラッシュが残るケースがあるため。 -->
   <script data-goatcounter="https://vendimap.goatcounter.com/count"
-          async src="//gc.zgo.at/count.js"></script>
+          defer src="//gc.zgo.at/count.js"></script>
   <style>
     :root, [data-theme="light"] {
       --bg: #f2f2f7;
@@ -1443,12 +1445,14 @@
     });
 
     // === 起動スプラッシュを一定時間後に閉じる ===
-    window.addEventListener('load', () => {
-      setTimeout(() => {
-        const splash = document.getElementById('splash');
-        if (splash) splash.classList.add('hidden');
-      }, 1200);
-    });
+    // window.loadはサードパーティスクリプト(GoatCounter等)が遅れると発火しないので、
+    // スクリプト到達時点でタイマーを開始してフォールバックを保証する
+    function hideSplash() {
+      const splash = document.getElementById('splash');
+      if (splash) splash.classList.add('hidden');
+    }
+    setTimeout(hideSplash, 1500);
+    window.addEventListener('load', () => setTimeout(hideSplash, 800));
 
     // init内で実体が代入される（スコープ越え用のホルダー）
     let renderMarkers = () => {};
