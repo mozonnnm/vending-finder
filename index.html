@@ -626,6 +626,62 @@
       color: #1d1d1f;
     }
 
+    /* === ユーザー報告ボタン === */
+    .popup-reports {
+      display: flex;
+      gap: 6px;
+      margin-top: 8px;
+    }
+    .popup-report-btn {
+      flex: 1;
+      padding: 8px 10px;
+      background: var(--border);
+      color: var(--text);
+      border: none;
+      border-radius: 10px;
+      font-size: 12px;
+      font-weight: 600;
+      cursor: pointer;
+      display: flex; align-items: center; justify-content: center;
+      gap: 4px;
+      transition: background 0.15s, transform 0.1s;
+    }
+    .popup-report-btn:active { transform: scale(0.96); }
+    .popup-report-btn.active.exists {
+      background: #34c759;
+      color: #fff;
+    }
+    .popup-report-btn.active.missing {
+      background: #ff3b30;
+      color: #fff;
+    }
+    .popup-report-hint {
+      font-size: 10px;
+      opacity: 0.65;
+      margin-top: 4px;
+      text-align: center;
+    }
+
+    /* ピンに報告マークを重ねる */
+    .vm-report-mark {
+      position: absolute;
+      bottom: -3px; left: -3px;
+      width: 14px; height: 14px;
+      border-radius: 50%;
+      color: #fff;
+      font-size: 8px;
+      font-weight: 700;
+      display: flex; align-items: center; justify-content: center;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.3);
+      border: 1.5px solid var(--pin-border);
+    }
+    .vm-report-mark.exists { background: #34c759; }
+    .vm-report-mark.missing { background: #ff3b30; }
+    .vm-pin.reported-missing {
+      opacity: 0.35;
+      filter: grayscale(0.6);
+    }
+
     /* お気に入りリスト項目の小さな星 */
     .list-item-fav {
       flex-shrink: 0;
@@ -736,11 +792,13 @@
       <div class="info-note-icon">ℹ️</div>
       <div class="info-note-text">
         <strong>データについて</strong>
-        自販機情報は<a href="https://www.openstreetmap.org" target="_blank" style="color:var(--accent);text-decoration:none;">OpenStreetMap</a>由来です。実際にはもう存在しない、または未登録の可能性があります。⚠マークは情報が古い可能性のあるものです。
+        自販機情報は<a href="https://www.openstreetmap.org" target="_blank" style="color:var(--accent);text-decoration:none;">OpenStreetMap</a>由来です。実際にはもう存在しない、または未登録の可能性があります。⚠マークは情報が古い可能性のあるものです。ピンをタップして「ある／ない」を報告できます。
         <div style="margin-top:8px;font-size:11px;opacity:0.75;">
           <a href="./privacy.html" target="_blank" style="color:inherit;text-decoration:underline;">プライバシーポリシー</a>
           ・
           <a href="./terms.html" target="_blank" style="color:inherit;text-decoration:underline;">利用規約</a>
+          ・
+          <a href="#" id="export-reports-link" style="color:inherit;text-decoration:underline;">報告をエクスポート</a>
         </div>
       </div>
       <button class="info-note-close" id="info-note-close" aria-label="閉じる">✕</button>
@@ -832,6 +890,11 @@
       <div class="opt-icon" style="background:#ff9500;color:#fff;">⚠</div>
       <div class="opt-label">古いデータ（8年以上更新なし）を除外</div>
       <div class="opt-check">✓</div>
+    </button>
+    <div class="sheet-section-label">あなたの報告</div>
+    <button class="theme-option" id="export-reports-btn">
+      <div class="opt-icon" style="background:var(--accent);color:#fff;">📥</div>
+      <div class="opt-label">報告をエクスポート（JSON）</div>
     </button>
   </div>
 
@@ -975,6 +1038,14 @@
       infoNote.classList.remove('show');
       localStorage.setItem(NOTE_KEY, '1');
     });
+    function handleExportReports(e) {
+      e?.preventDefault();
+      const count = exportReports();
+      showStatus(count > 0 ? `${count}件の報告をエクスポートしました` : '報告がまだありません');
+      trackEvent('reports-export', { count });
+    }
+    document.getElementById('export-reports-link')?.addEventListener('click', handleExportReports);
+    document.getElementById('export-reports-btn')?.addEventListener('click', handleExportReports);
 
     // シート
     const sheet = document.getElementById('sheet');
@@ -1211,6 +1282,56 @@
       }
       saveFavorites(favs);
       return !!favs[item.id];
+    }
+
+    // === ユーザー報告（存在確認 / 撤去報告） ===
+    const REPORTS_KEY = 'vendimap-reports-v1';
+    function loadReports() {
+      try { return JSON.parse(localStorage.getItem(REPORTS_KEY) || '{}'); } catch { return {}; }
+    }
+    function saveReports(reports) {
+      try { localStorage.setItem(REPORTS_KEY, JSON.stringify(reports)); } catch {}
+    }
+    function getReport(id) { return loadReports()[id] || null; }
+    // 同じ type なら解除、異なる type なら上書き
+    function setReport(item, type) {
+      const reports = loadReports();
+      const current = reports[item.id];
+      if (current && current.type === type) {
+        delete reports[item.id];
+      } else {
+        reports[item.id] = {
+          id: item.id,
+          type,
+          lat: item.lat,
+          lng: item.lng,
+          tags: { name: item.tags?.name, vending: item.tags?.vending },
+          timestamp: new Date().toISOString(),
+        };
+      }
+      saveReports(reports);
+      return reports[item.id] || null;
+    }
+    function exportReports() {
+      const reports = loadReports();
+      const data = {
+        app: 'VendiMap',
+        exportedAt: new Date().toISOString(),
+        count: Object.keys(reports).length,
+        reports: Object.values(reports),
+        notes: '報告はOpenStreetMap編集者へのフィードバック素材として活用できます。',
+      };
+      const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      const date = new Date().toISOString().slice(0, 10);
+      a.href = url;
+      a.download = `vendimap-reports-${date}.json`;
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      URL.revokeObjectURL(url);
+      return data.count;
     }
 
     // === シェア ===
@@ -1645,11 +1766,16 @@
           if (r.isStale) staleCount++;
           const dimClass = r.isDrink ? '' : ' dim';
           const favClass = isFavorite(r.id) ? ' fav' : '';
+          const report = getReport(r.id);
+          const reportClass = report?.type === 'missing' ? ' reported-missing' : '';
           const staleMark = r.isStale ? '<div class="vm-stale-mark">⚠</div>' : '';
           const favStar = isFavorite(r.id) ? '<div class="fav-star">★</div>' : '';
+          const reportMark = report
+            ? `<div class="vm-report-mark ${report.type}">${report.type === 'exists' ? '✓' : '✗'}</div>`
+            : '';
           const icon = L.divIcon({
             className: '',
-            html: `<div class="vm-pin${dimClass}${favClass}">${r.emoji}</div>${staleMark}${favStar}`,
+            html: `<div class="vm-pin${dimClass}${favClass}${reportClass}">${r.emoji}</div>${staleMark}${favStar}${reportMark}`,
             iconSize: [32, 32], iconAnchor: [16, 16],
           });
           const marker = L.marker([r.lat, r.lng], { icon });
@@ -1699,6 +1825,12 @@
         const fav = isFavorite(r.id);
         const favBtnClass = fav ? ' fav-on' : '';
         const favBtnIcon = fav ? '★' : '☆';
+        const report = getReport(r.id);
+        const existsActive = report?.type === 'exists' ? ' active exists' : '';
+        const missingActive = report?.type === 'missing' ? ' active missing' : '';
+        const reportHint = report
+          ? `<div class="popup-report-hint">${report.type === 'exists' ? '✅ 「ある」と報告済み（タップで取消）' : '❌ 「ない」と報告済み（タップで取消）'}</div>`
+          : '<div class="popup-report-hint">現地で確認できたら教えてください</div>';
         return `
           <div class="popup-title">${r.emoji} ${name}</div>
           ${distanceLabel}
@@ -1715,6 +1847,11 @@
             <button class="popup-action-btn${favBtnClass}" id="fav-${r.id}" aria-label="お気に入り">${favBtnIcon}</button>
             <button class="popup-action-btn" id="share-${r.id}" aria-label="シェア">📤</button>
           </div>
+          <div class="popup-reports">
+            <button class="popup-report-btn${existsActive}" id="report-exists-${r.id}" aria-label="ここに自販機があると報告">✅ ある</button>
+            <button class="popup-report-btn${missingActive}" id="report-missing-${r.id}" aria-label="ここに自販機がないと報告">❌ ない</button>
+          </div>
+          ${reportHint}
         `;
       }
 
@@ -1744,6 +1881,17 @@
         if (shareBtn) {
           shareBtn.addEventListener('click', () => shareVending(r));
         }
+        const onReportClick = (type) => {
+          const after = setReport(r, type);
+          const action = after ? (type === 'exists' ? '「ある」と報告しました' : '「ない」と報告しました') : '報告を取り消しました';
+          showStatus(action);
+          trackEvent(after ? 'report-' + type : 'report-clear');
+          renderMarkers();
+          // ポップアップは閉じてから再オープン（中身を更新するため）
+          r._marker?.closePopup();
+        };
+        document.getElementById(`report-exists-${r.id}`)?.addEventListener('click', () => onReportClick('exists'));
+        document.getElementById(`report-missing-${r.id}`)?.addEventListener('click', () => onReportClick('missing'));
       }
 
       // リストシートに描画
