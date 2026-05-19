@@ -984,6 +984,58 @@
       }
     }
 
+    // === Overpass結果のキャッシュ & 連打クールダウン ===
+    const CACHE_KEY = 'vendimap-cache-v1';
+    const CACHE_TTL_MS = 60 * 60 * 1000;        // 1時間
+    const CACHE_MAX_ENTRIES = 20;
+    const SEARCH_COOLDOWN_MS = 2000;
+    let lastSearchAt = 0;
+
+    function cacheKeyFor(lat, lng, radius) {
+      return `${lat.toFixed(3)}_${lng.toFixed(3)}_${radius}`;
+    }
+    function loadCache() {
+      try { return JSON.parse(localStorage.getItem(CACHE_KEY) || '{}'); } catch { return {}; }
+    }
+    function readCacheEntry(lat, lng, radius) {
+      const cache = loadCache();
+      const entry = cache[cacheKeyFor(lat, lng, radius)];
+      if (!entry) return null;
+      if (Date.now() - entry.timestamp > CACHE_TTL_MS) return null;
+      return entry;
+    }
+    function writeCacheEntry(lat, lng, radius, elements) {
+      try {
+        const cache = loadCache();
+        cache[cacheKeyFor(lat, lng, radius)] = { timestamp: Date.now(), elements };
+        const entries = Object.entries(cache);
+        if (entries.length > CACHE_MAX_ENTRIES) {
+          entries.sort((a, b) => b[1].timestamp - a[1].timestamp);
+          const pruned = Object.fromEntries(entries.slice(0, CACHE_MAX_ENTRIES));
+          localStorage.setItem(CACHE_KEY, JSON.stringify(pruned));
+        } else {
+          localStorage.setItem(CACHE_KEY, JSON.stringify(cache));
+        }
+      } catch {}
+    }
+    function normalizeElements(elements) {
+      const STALE_YEARS = 8;
+      const now = new Date();
+      return elements.map((el) => {
+        const tags = el.tags || {};
+        const type = tags.vending || 'unknown';
+        const isDrink = ['drinks', 'sweets', 'food', 'coffee'].includes(type);
+        const emoji = type === 'drinks' ? '🥤' : type === 'coffee' ? '☕' : type === 'sweets' ? '🍫' : type === 'food' ? '🍙' : type === 'cigarettes' ? '🚬' : type === 'parking_tickets' ? '🅿️' : '🏷️';
+        const timestamp = el.timestamp ? new Date(el.timestamp) : null;
+        const ageYears = timestamp ? (now - timestamp) / (365.25 * 24 * 60 * 60 * 1000) : null;
+        const isStale = ageYears != null && ageYears >= STALE_YEARS;
+        return {
+          id: el.id, lat: el.lat, lng: el.lon,
+          tags, type, isDrink, emoji, timestamp, isStale,
+        };
+      });
+    }
+
     // === 検索範囲 ===
     const RADIUS_KEY = 'vendimap-radius';
     let SEARCH_RADIUS_M = Number(localStorage.getItem(RADIUS_KEY)) || 1000;
@@ -1346,13 +1398,16 @@
             const zoom = SEARCH_RADIUS_M <= 500 ? 17 : SEARCH_RADIUS_M <= 1000 ? 16 : 15;
             mapRef.setView([latitude, longitude], zoom);
             statusEl.classList.remove('show');
-            searchVending(latitude, longitude);
+            // 現在地ボタンは「最新を取りに行く」意図なのでキャッシュ無視
+            searchVending(latitude, longitude, { forceFresh: true });
           },
           (err) => { showStatus('現在地取得に失敗', 3000); countEl.textContent = '取得失敗'; }
         );
       }
 
-      async function searchVending(lat, lng) {
+      async function searchVending(lat, lng, opts = {}) {
+        const { forceFresh = false, skipCooldown = false } = opts;
+
         // 引数が無ければ地図中心から検索
         if (lat == null || lng == null) {
           const c = mapRef.getCenter();
@@ -1360,11 +1415,35 @@
         }
         showSearchCircle(lat, lng);
 
+        // キャッシュヒット時は即座に描画（クールダウン・API呼び出しせず）。forceFreshなら無視
+        if (!forceFresh) {
+          const cached = readCacheEntry(lat, lng, SEARCH_RADIUS_M);
+          if (cached) {
+            lastResults = normalizeElements(cached.elements);
+            renderMarkers();
+            renderList();
+            const ageMin = Math.max(1, Math.round((Date.now() - cached.timestamp) / 60000));
+            showStatus(`キャッシュから表示（${ageMin}分前のデータ）`);
+            return;
+          }
+        }
+
+        // クールダウン: API呼び出しの連打を抑制（手動再試行は skipCooldown でバイパス可能）
+        if (!skipCooldown) {
+          const elapsed = Date.now() - lastSearchAt;
+          if (elapsed < SEARCH_COOLDOWN_MS) {
+            const wait = Math.ceil((SEARCH_COOLDOWN_MS - elapsed) / 1000);
+            showStatus(`連続検索を抑制中（${wait}秒お待ちください）`);
+            return;
+          }
+        }
+        lastSearchAt = Date.now();
+
         const query = `[out:json][timeout:25];node["amenity"="vending_machine"](around:${SEARCH_RADIUS_M},${lat},${lng});out meta;`;
         showStatus('検索中…', 0);
         countEl.textContent = '検索中';
 
-        const retry = () => searchVending(lat, lng);
+        const retry = () => searchVending(lat, lng, { forceFresh: true, skipCooldown: true });
         const controller = new AbortController();
         const timeoutId = setTimeout(() => controller.abort(), 30000);
 
@@ -1383,22 +1462,8 @@
             throw err;
           }
           const data = await res.json();
-          // データを正規化してlastResultsに格納
-          const STALE_YEARS = 8;
-          const now = new Date();
-          lastResults = data.elements.map((el) => {
-            const tags = el.tags || {};
-            const type = tags.vending || 'unknown';
-            const isDrink = ['drinks', 'sweets', 'food', 'coffee'].includes(type);
-            const emoji = type === 'drinks' ? '🥤' : type === 'coffee' ? '☕' : type === 'sweets' ? '🍫' : type === 'food' ? '🍙' : type === 'cigarettes' ? '🚬' : type === 'parking_tickets' ? '🅿️' : '🏷️';
-            const timestamp = el.timestamp ? new Date(el.timestamp) : null;
-            const ageYears = timestamp ? (now - timestamp) / (365.25 * 24 * 60 * 60 * 1000) : null;
-            const isStale = ageYears != null && ageYears >= STALE_YEARS;
-            return {
-              id: el.id, lat: el.lat, lng: el.lon,
-              tags, type, isDrink, emoji, timestamp, isStale,
-            };
-          });
+          writeCacheEntry(lat, lng, SEARCH_RADIUS_M, data.elements);
+          lastResults = normalizeElements(data.elements);
           renderMarkers();
           renderList();
         } catch (e) {
@@ -1612,7 +1677,8 @@
       };
 
       document.getElementById('btn-locate').addEventListener('click', locate);
-      document.getElementById('btn-search').addEventListener('click', () => searchVending());
+      // 「この範囲で探す」は明示的な更新要求なのでキャッシュ無視
+      document.getElementById('btn-search').addEventListener('click', () => searchVending(undefined, undefined, { forceFresh: true }));
 
       // 範囲選択シートからの再検索用
       triggerSearch = searchVending;
