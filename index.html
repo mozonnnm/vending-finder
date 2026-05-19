@@ -128,6 +128,16 @@
     .icon-btn:active { transform: scale(0.92); }
     /* 文字ボタン用フォントサイズ */
     #btn-radius { font-size: 11px; }
+    /* フィルターボタンはテキスト幅に応じてpill形状に伸縮（円形だと「🥤 飲食」「🏷️ 全て」が見切れる） */
+    #btn-filter {
+      width: auto;
+      min-width: 40px;
+      padding: 0 12px;
+      border-radius: 999px;
+      font-size: 13px;
+      white-space: nowrap;
+      gap: 4px;
+    }
     .icon-btn.active {
       background: var(--accent);
       color: #fff;

@@ -1,5 +1,5 @@
 // VendiMap Service Worker
-const CACHE_VERSION = 'vendimap-v4';
+const CACHE_VERSION = 'vendimap-v5';
 const APP_SHELL = [
   './',
   './index.html',
