@@ -18,6 +18,9 @@
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css" />
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet.markercluster/1.5.3/MarkerCluster.min.css" />
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet.markercluster/1.5.3/MarkerCluster.Default.min.css" />
+  <!-- 計測（GoatCounter）— プライバシーポリシー参照 -->
+  <script data-goatcounter="https://vendimap.goatcounter.com/count"
+          async src="//gc.zgo.at/count.js"></script>
   <style>
     :root, [data-theme="light"] {
       --bg: #f2f2f7;
@@ -1730,20 +1733,9 @@
     }
 
     // === 計測（GoatCounter） ===
-    // 有効化するには GOATCOUNTER_URL に 'https://<your-code>.goatcounter.com/count' を設定
-    // 詳細セットアップ手順: README参照
-    const GOATCOUNTER_URL = 'https://vendimap.goatcounter.com/count';
-    if (GOATCOUNTER_URL) {
-      const s = document.createElement('script');
-      s.async = true;
-      s.src = '//gc.zgo.at/count.js';
-      s.setAttribute('data-goatcounter', GOATCOUNTER_URL);
-      document.head.appendChild(s);
-    }
-    // 無設定なら no-op、設定後は GoatCounter にイベント送信
+    // スクリプトタグは <head> に直接埋込済み。ここではカスタムイベント送信のヘルパーのみ。
     function trackEvent(name, extra) {
       try {
-        if (!GOATCOUNTER_URL) return;
         if (typeof window.goatcounter?.count !== 'function') return;
         window.goatcounter.count({
           path: 'event/' + name,

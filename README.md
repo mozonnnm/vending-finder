@@ -63,14 +63,16 @@ git push origin main
 
 ## 計測（GoatCounter）
 
-利用状況の計測には[GoatCounter](https://www.goatcounter.com/)（無料・Cookie不要・プライバシー重視）の組み込みを準備済みです。デフォルトでは無効化されており、有効化するには以下を行ってください。
+利用状況の計測には[GoatCounter](https://www.goatcounter.com/)（無料・Cookie不要・プライバシー重視）を使用しています。
 
-1. https://www.goatcounter.com/ でサインアップしてサイトコードを取得（例: `vendimap`）
-2. `index.html` の以下の定数を編集:
-   ```js
-   const GOATCOUNTER_URL = ''; // ← 'https://vendimap.goatcounter.com/count' に書き換え
-   ```
-3. push すれば計測が始まる
+ダッシュボード: https://vendimap.goatcounter.com/
+
+別のGoatCounterアカウントで運用する場合は、`index.html` の `<head>` 内のスクリプトタグを書き換えてください。
+
+```html
+<script data-goatcounter="https://<your-code>.goatcounter.com/count"
+        async src="//gc.zgo.at/count.js"></script>
+```
 
 計測される主なイベント:
 - ページ表示（自動）
