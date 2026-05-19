@@ -1234,7 +1234,6 @@
     const countEl = document.getElementById('count');
     const loadingEl = document.getElementById('loading');
     const themeColorMeta = document.getElementById('theme-color-meta');
-    const themeIconEl = document.getElementById('theme-icon');
     let statusTimeout = null;
 
     function showStatus(msg, msOrOpts = 2000) {
@@ -1304,7 +1303,6 @@
       const actual = resolveTheme(pref);
       document.documentElement.setAttribute('data-theme', actual);
       themeColorMeta.setAttribute('content', actual === 'dark' ? '#1a1d24' : '#f2f2f7');
-      themeIconEl.textContent = pref === 'auto' ? '◐' : (actual === 'dark' ? '🌙' : '☀️');
 
       if (mapRef && tileLayerLight && tileLayerDark) {
         if (actual === 'dark') {
