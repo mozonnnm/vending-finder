@@ -1130,11 +1130,13 @@
       if (navigator.share) {
         try {
           await navigator.share({ title: name, text, url });
+          trackEvent('share', { method: 'native' });
         } catch (e) { /* キャンセル時は何もしない */ }
       } else {
         try {
           await navigator.clipboard.writeText(text);
           showStatus('クリップボードにコピーしました');
+          trackEvent('share', { method: 'clipboard' });
         } catch (e) {
           showStatus('シェアに失敗しました', 3000);
         }
@@ -1415,8 +1417,13 @@
             statusEl.classList.remove('show');
             // 現在地ボタンは「最新を取りに行く」意図なのでキャッシュ無視
             searchVending(latitude, longitude, { forceFresh: true });
+            trackEvent('locate-success');
           },
-          (err) => { showStatus('現在地取得に失敗', 3000); countEl.textContent = '取得失敗'; }
+          (err) => {
+            showStatus('現在地取得に失敗', 3000);
+            countEl.textContent = '取得失敗';
+            trackEvent('locate-error', { code: err.code });
+          }
         );
       }
 
@@ -1439,6 +1446,7 @@
             renderList();
             const ageMin = Math.max(1, Math.round((Date.now() - cached.timestamp) / 60000));
             showStatus(`キャッシュから表示（${ageMin}分前のデータ）`);
+            trackEvent('search-cache-hit', { ageMin, radius: SEARCH_RADIUS_M });
             return;
           }
         }
@@ -1481,6 +1489,7 @@
           lastResults = normalizeElements(data.elements);
           renderMarkers();
           renderList();
+          trackEvent('search-success', { radius: SEARCH_RADIUS_M, count: lastResults.length });
         } catch (e) {
           console.error('VendiMap searchVending error:', e);
           let msg;
@@ -1497,6 +1506,7 @@
           }
           showStatus(msg, { ms: 8000, type: 'error', retry });
           countEl.textContent = '失敗';
+          trackEvent('search-error', { reason: e.name || e.message || 'unknown', status: e.status });
         } finally {
           clearTimeout(timeoutId);
         }
@@ -1605,6 +1615,7 @@
             favBtn.textContent = nowFav ? '★' : '☆';
             favBtn.classList.toggle('fav-on', nowFav);
             showStatus(nowFav ? 'お気に入りに追加' : 'お気に入りから削除');
+            trackEvent(nowFav ? 'favorite-add' : 'favorite-remove');
             // ピンの見た目を更新
             renderMarkers();
             // リストが開いていれば更新
@@ -1717,6 +1728,33 @@
         });
       });
     }
+
+    // === 計測（GoatCounter） ===
+    // 有効化するには GOATCOUNTER_URL に 'https://<your-code>.goatcounter.com/count' を設定
+    // 詳細セットアップ手順: README参照
+    const GOATCOUNTER_URL = '';
+    if (GOATCOUNTER_URL) {
+      const s = document.createElement('script');
+      s.async = true;
+      s.src = '//gc.zgo.at/count.js';
+      s.setAttribute('data-goatcounter', GOATCOUNTER_URL);
+      document.head.appendChild(s);
+    }
+    // 無設定なら no-op、設定後は GoatCounter にイベント送信
+    function trackEvent(name, extra) {
+      try {
+        if (!GOATCOUNTER_URL) return;
+        if (typeof window.goatcounter?.count !== 'function') return;
+        window.goatcounter.count({
+          path: 'event/' + name,
+          event: true,
+          title: extra ? JSON.stringify(extra) : undefined,
+        });
+      } catch {}
+    }
+    // PWAインストール関連
+    window.addEventListener('beforeinstallprompt', () => trackEvent('pwa-install-prompt'));
+    window.addEventListener('appinstalled', () => trackEvent('pwa-installed'));
   </script>
 </body>
 </html>

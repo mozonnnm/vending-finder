@@ -61,6 +61,27 @@ git push origin main
 - Overpass APIは公共インフラのため、レート制限がかかる場合があります（本アプリ側で1時間のローカルキャッシュ＋2秒クールダウンを実装済み）
 - 8年以上更新がないデータは⚠️マークで表示しますが、実在性は保証されません
 
+## 計測（GoatCounter）
+
+利用状況の計測には[GoatCounter](https://www.goatcounter.com/)（無料・Cookie不要・プライバシー重視）の組み込みを準備済みです。デフォルトでは無効化されており、有効化するには以下を行ってください。
+
+1. https://www.goatcounter.com/ でサインアップしてサイトコードを取得（例: `vendimap`）
+2. `index.html` の以下の定数を編集:
+   ```js
+   const GOATCOUNTER_URL = ''; // ← 'https://vendimap.goatcounter.com/count' に書き換え
+   ```
+3. push すれば計測が始まる
+
+計測される主なイベント:
+- ページ表示（自動）
+- `search-success` / `search-error` / `search-cache-hit`
+- `locate-success` / `locate-error`
+- `favorite-add` / `favorite-remove`
+- `share`
+- `pwa-install-prompt` / `pwa-installed`
+
+個人を特定する情報は送信されません。GoatCounterの管理画面は `https://<your-code>.goatcounter.com/` でアクセスできます。
+
 ## ポリシー
 
 - [プライバシーポリシー](https://mozonnnm.github.io/vending-finder/privacy.html)
