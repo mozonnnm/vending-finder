@@ -838,6 +838,7 @@
     const loadingEl = document.getElementById('loading');
     const themeColorMeta = document.getElementById('theme-color-meta');
     const themeIconEl = document.getElementById('theme-icon');
+    let statusTimeout = null;
 
     function showStatus(msg, msOrOpts = 2000) {
       const opts = (typeof msOrOpts === 'object' && msOrOpts !== null) ? msOrOpts : { ms: msOrOpts };
