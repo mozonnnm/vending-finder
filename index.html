@@ -607,7 +607,7 @@
     .popup-action-btn {
       flex: 1;
       min-width: 0;
-      padding: 8px 4px;
+      padding: 8px 2px;
       background: var(--border);
       color: var(--text);
       border: none;
@@ -620,7 +620,12 @@
       line-height: 1;
     }
     .popup-action-btn .action-icon { font-size: 18px; }
-    .popup-action-btn .action-label { font-size: 10px; font-weight: 600; opacity: 0.85; }
+    .popup-action-btn .action-label {
+      font-size: 10px;
+      font-weight: 600;
+      opacity: 0.85;
+      white-space: nowrap;
+    }
     a.popup-action-btn { color: var(--text); }
     a.popup-action-btn:hover { color: var(--text); }
     .popup-action-btn:active { transform: scale(0.94); }
