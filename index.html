@@ -1508,29 +1508,53 @@
             err.status = res.status;
             throw err;
           }
-          const data = await res.json();
+          // Overpassは過負荷時に200のまま「runtime error」等の平文を返すことがあるので、
+          // 一旦テキストで取得してから JSON 解釈する
+          const text = await res.text();
+          let data;
+          try {
+            data = JSON.parse(text);
+          } catch (parseErr) {
+            const overloadHints = ['runtime error', 'timed out', 'rate_limited', 'too many requests', 'Bad Request'];
+            const isOverload = overloadHints.some(h => text.toLowerCase().includes(h.toLowerCase()));
+            const err = new Error(isOverload ? 'OVERPASS_OVERLOAD' : 'PARSE_ERROR');
+            err.responseSnippet = text.slice(0, 200);
+            throw err;
+          }
           writeCacheEntry(lat, lng, SEARCH_RADIUS_M, data.elements);
           lastResults = normalizeElements(data.elements);
           renderMarkers();
           renderList();
           trackEvent('search-success', { radius: SEARCH_RADIUS_M, count: lastResults.length });
         } catch (e) {
-          console.error('VendiMap searchVending error:', e);
+          console.error('VendiMap searchVending error:', e, e?.responseSnippet);
           let msg;
+          let reason = e.name || e.message || 'unknown';
           if (e.name === 'AbortError') {
             msg = 'タイムアウトしました。範囲を狭めてみてください';
+            reason = 'timeout';
           } else if (e.message === 'OFFLINE') {
             msg = 'オフラインです。接続を確認してください';
+            reason = 'offline';
           } else if (e.status === 429 || e.status === 503 || e.status === 504) {
             msg = 'サーバーが混雑中。少し待って再試行してください';
+            reason = 'http_' + e.status;
+          } else if (e.message === 'OVERPASS_OVERLOAD') {
+            msg = 'サーバーが混雑中。少し待って再試行してください';
+            reason = 'overload';
+          } else if (e.message === 'PARSE_ERROR') {
+            msg = 'サーバーから想定外の応答。少し待って再試行してください';
+            reason = 'parse_error';
           } else if (e instanceof TypeError) {
             msg = 'ネットワークエラー。接続を確認してください';
+            reason = 'network';
           } else {
             msg = '検索に失敗しました';
+            reason = 'unknown:' + (e.name || e.message);
           }
           showStatus(msg, { ms: 5000, type: 'error', retry });
           countEl.textContent = '失敗';
-          trackEvent('search-error', { reason: e.name || e.message || 'unknown', status: e.status });
+          trackEvent('search-error', { reason, status: e.status });
         } finally {
           clearTimeout(timeoutId);
         }
