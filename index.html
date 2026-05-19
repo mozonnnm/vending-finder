@@ -253,6 +253,14 @@
       background: rgba(255, 59, 48, 0.95);
       color: #fff;
       border-color: rgba(255, 59, 48, 0.6);
+      pointer-events: auto;
+      cursor: pointer;
+    }
+    .status.error::after {
+      content: "✕";
+      margin-left: 4px;
+      opacity: 0.85;
+      font-size: 11px;
     }
     .status-retry {
       appearance: none; -webkit-appearance: none;
@@ -843,9 +851,12 @@
       // リトライボタンの制御
       if (typeof opts.retry === 'function') {
         statusRetryEl.hidden = false;
-        statusRetryEl.onclick = () => {
+        statusRetryEl.onclick = (e) => {
+          e.stopPropagation(); // タップ閉じハンドラに伝播させない
           statusRetryEl.hidden = true;
           statusEl.classList.remove('show');
+          statusEl.classList.remove('error');
+          clearTimeout(statusTimeout);
           opts.retry();
         };
       } else {
@@ -853,12 +864,22 @@
         statusRetryEl.onclick = null;
       }
 
+      // エラー表示はタップで閉じられる
+      statusEl.onclick = isError ? () => {
+        statusEl.classList.remove('show');
+        statusEl.classList.remove('error');
+        statusRetryEl.hidden = true;
+        clearTimeout(statusTimeout);
+        statusEl.onclick = null;
+      } : null;
+
       if (ms > 0) {
         clearTimeout(statusTimeout);
         statusTimeout = setTimeout(() => {
           statusEl.classList.remove('show');
           statusEl.classList.remove('error');
           statusRetryEl.hidden = true;
+          statusEl.onclick = null;
         }, ms);
       }
 
@@ -1507,7 +1528,7 @@
           } else {
             msg = '検索に失敗しました';
           }
-          showStatus(msg, { ms: 8000, type: 'error', retry });
+          showStatus(msg, { ms: 5000, type: 'error', retry });
           countEl.textContent = '失敗';
           trackEvent('search-error', { reason: e.name || e.message || 'unknown', status: e.status });
         } finally {
