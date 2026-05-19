@@ -165,6 +165,11 @@
       box-shadow: 0 -8px 32px rgba(0,0,0,0.15);
     }
     .sheet.show { transform: translateY(0); }
+    .sheet-settings {
+      max-height: 80vh;
+      overflow-y: auto;
+      -webkit-overflow-scrolling: touch;
+    }
     .sheet-handle {
       width: 36px; height: 5px; border-radius: 999px;
       background: var(--border-strong);
@@ -788,12 +793,7 @@
       <div class="pill" id="count-pill">
         <span class="count-num" id="count" data-i18n="preparing">準備中</span>
       </div>
-      <button class="icon-btn" id="btn-radius" data-i18n-aria="ariaBtnRadius" aria-label="検索範囲">1km</button>
-      <button class="icon-btn" id="btn-filter" data-i18n-aria="ariaBtnFilter" aria-label="フィルター">🥤</button>
-      <button class="icon-btn" id="btn-compass" data-i18n-aria="ariaBtnCompass" aria-label="向きを表示">🧭</button>
-      <button class="icon-btn" id="btn-theme" data-i18n-aria="ariaBtnTheme" aria-label="テーマ切替">
-        <span id="theme-icon">◐</span>
-      </button>
+      <button class="icon-btn" id="btn-settings" data-i18n-aria="ariaBtnSettings" aria-label="設定">⚙️</button>
     </div>
   </div>
 
@@ -857,11 +857,25 @@
     <div class="list-body" id="list-body"></div>
   </div>
 
-  <!-- 範囲選択シート -->
-  <div class="sheet-backdrop" id="radius-backdrop"></div>
-  <div class="sheet" id="radius-sheet">
+  <!-- 統合設定シート -->
+  <div class="sheet-backdrop" id="settings-backdrop"></div>
+  <div class="sheet sheet-settings" id="settings-sheet">
     <div class="sheet-handle"></div>
-    <div class="sheet-title" data-i18n="radiusSheetTitle">検索範囲</div>
+    <div class="sheet-title" data-i18n="settingsSheetTitle">設定</div>
+
+    <div class="sheet-section-label" data-i18n="sectionType">種類</div>
+    <button class="theme-option" data-filter-type="drinks">
+      <div class="opt-icon" style="background:var(--vending);color:#fff;">🥤</div>
+      <div class="opt-label" data-i18n="typeDrinksLabel">飲食のみ（ドリンク・コーヒー・お菓子・食品）</div>
+      <div class="opt-check">✓</div>
+    </button>
+    <button class="theme-option" data-filter-type="all">
+      <div class="opt-icon" style="background:var(--surface-strong);">🏷️</div>
+      <div class="opt-label" data-i18n="typeAllLabel">全種類（タバコ・駐車券なども含む）</div>
+      <div class="opt-check">✓</div>
+    </button>
+
+    <div class="sheet-section-label" data-i18n="radiusSheetTitle">検索範囲</div>
     <button class="theme-option" data-radius="500">
       <div class="opt-icon" style="background:var(--accent);color:#fff;font-size:11px;font-weight:700;">500</div>
       <div class="opt-label" data-i18n="radius500">500m（徒歩6分圏）</div>
@@ -877,42 +891,22 @@
       <div class="opt-label" data-i18n="radius2k">2km（徒歩25分圏）</div>
       <div class="opt-check">✓</div>
     </button>
-  </div>
 
-  <!-- フィルターシート -->
-  <div class="sheet-backdrop" id="filter-backdrop"></div>
-  <div class="sheet" id="filter-sheet">
-    <div class="sheet-handle"></div>
-    <div class="sheet-title" data-i18n="filterSheetTitle">表示フィルター</div>
-    <div class="sheet-section-label" data-i18n="sectionType">種類</div>
-    <button class="theme-option" data-filter-type="drinks">
-      <div class="opt-icon" style="background:var(--vending);color:#fff;">🥤</div>
-      <div class="opt-label" data-i18n="typeDrinksLabel">飲食のみ（ドリンク・コーヒー・お菓子・食品）</div>
-      <div class="opt-check">✓</div>
-    </button>
-    <button class="theme-option" data-filter-type="all">
-      <div class="opt-icon" style="background:var(--surface-strong);">🏷️</div>
-      <div class="opt-label" data-i18n="typeAllLabel">全種類（タバコ・駐車券なども含む）</div>
-      <div class="opt-check">✓</div>
-    </button>
     <div class="sheet-section-label" data-i18n="sectionFreshness">データの新しさ</div>
     <button class="theme-option" data-stale-toggle>
       <div class="opt-icon" style="background:#ff9500;color:#fff;">⚠</div>
       <div class="opt-label" data-i18n="staleExcludeLabel">古いデータ（8年以上更新なし）を除外</div>
       <div class="opt-check">✓</div>
     </button>
-    <div class="sheet-section-label" data-i18n="sectionReports">あなたの報告</div>
-    <button class="theme-option" id="export-reports-btn">
-      <div class="opt-icon" style="background:var(--accent);color:#fff;">📥</div>
-      <div class="opt-label" data-i18n="exportReportsLabel">報告をエクスポート（JSON）</div>
-    </button>
-  </div>
 
-  <!-- テーマシート -->
-  <div class="sheet-backdrop" id="sheet-backdrop"></div>
-  <div class="sheet" id="sheet">
-    <div class="sheet-handle"></div>
-    <div class="sheet-title" data-i18n="themeSheetTitle">外観</div>
+    <div class="sheet-section-label" data-i18n="sectionCompass">向き</div>
+    <button class="theme-option" id="compass-toggle">
+      <div class="opt-icon" style="background:var(--accent);color:#fff;">🧭</div>
+      <div class="opt-label" data-i18n="compassToggleLabel">スマホの向きに合わせて表示</div>
+      <div class="opt-check">✓</div>
+    </button>
+
+    <div class="sheet-section-label" data-i18n="themeSheetTitle">外観</div>
     <button class="theme-option" data-theme-choice="auto">
       <div class="opt-icon auto">A</div>
       <div class="opt-label" data-i18n="themeAuto">端末の設定に合わせる</div>
@@ -928,6 +922,7 @@
       <div class="opt-label" data-i18n="themeDark">ダーク</div>
       <div class="opt-check">✓</div>
     </button>
+
     <div class="sheet-section-label" data-i18n="sectionLanguage">言語</div>
     <button class="theme-option" data-lang-choice="ja">
       <div class="opt-icon" style="background:var(--surface-strong);font-size:11px;font-weight:700;">日</div>
@@ -938,6 +933,12 @@
       <div class="opt-icon" style="background:var(--surface-strong);font-size:11px;font-weight:700;">EN</div>
       <div class="opt-label" data-i18n="langEn">English</div>
       <div class="opt-check">✓</div>
+    </button>
+
+    <div class="sheet-section-label" data-i18n="sectionReports">あなたの報告</div>
+    <button class="theme-option" id="export-reports-btn">
+      <div class="opt-icon" style="background:var(--accent);color:#fff;">📥</div>
+      <div class="opt-label" data-i18n="exportReportsLabel">報告をエクスポート（JSON）</div>
     </button>
   </div>
 
@@ -956,6 +957,7 @@
         countLabel: '失敗',
         searching: '検索中',
         // sheet titles
+        settingsSheetTitle: '設定',
         filterSheetTitle: '表示フィルター',
         radiusSheetTitle: '検索範囲',
         themeSheetTitle: '外観',
@@ -964,6 +966,8 @@
         sectionFreshness: 'データの新しさ',
         sectionReports: 'あなたの報告',
         sectionLanguage: '言語',
+        sectionCompass: '向き',
+        compassToggleLabel: 'スマホの向きに合わせて表示',
         // filter options
         typeDrinksLabel: '飲食のみ（ドリンク・コーヒー・お菓子・食品）',
         typeAllLabel: '全種類（タバコ・駐車券なども含む）',
@@ -1075,6 +1079,7 @@
         infoExportLink: '報告をエクスポート',
         // ARIA
         ariaSheetClose: '閉じる',
+        ariaBtnSettings: '設定',
         ariaBtnRadius: '検索範囲',
         ariaBtnFilter: 'フィルター',
         ariaBtnCompass: '向きを表示',
@@ -1098,6 +1103,7 @@
         countWithDrinks: '{n} · drinks {d}',
         countLabel: 'Failed',
         searching: 'Searching',
+        settingsSheetTitle: 'Settings',
         filterSheetTitle: 'Display filters',
         radiusSheetTitle: 'Search radius',
         themeSheetTitle: 'Appearance',
@@ -1105,6 +1111,8 @@
         sectionFreshness: 'Data freshness',
         sectionReports: 'Your reports',
         sectionLanguage: 'Language',
+        sectionCompass: 'Heading',
+        compassToggleLabel: 'Rotate to match your phone',
         typeDrinksLabel: 'Drinks only (drink, coffee, sweets, food)',
         typeAllLabel: 'All types (tobacco, parking tickets, etc.)',
         staleExcludeLabel: 'Hide stale data (not updated for 8+ years)',
@@ -1198,6 +1206,7 @@
         infoTermsLink: 'Terms',
         infoExportLink: 'Export reports',
         ariaSheetClose: 'Close',
+        ariaBtnSettings: 'Settings',
         ariaBtnRadius: 'Search radius',
         ariaBtnFilter: 'Filter',
         ariaBtnCompass: 'Heading',
@@ -1377,20 +1386,53 @@
     document.getElementById('export-reports-link')?.addEventListener('click', handleExportReports);
     document.getElementById('export-reports-btn')?.addEventListener('click', handleExportReports);
 
-    // シート
-    const sheet = document.getElementById('sheet');
-    const backdrop = document.getElementById('sheet-backdrop');
-    function openSheet() { sheet.classList.add('show'); backdrop.classList.add('show'); }
-    function closeSheet() { sheet.classList.remove('show'); backdrop.classList.remove('show'); }
-    document.getElementById('btn-theme').addEventListener('click', openSheet);
-    backdrop.addEventListener('click', closeSheet);
-    document.querySelectorAll('[data-theme-choice]').forEach(opt => {
+    // === 統合設定シート ===
+    const settingsSheet = document.getElementById('settings-sheet');
+    const settingsBackdrop = document.getElementById('settings-backdrop');
+    function applySettingsState() {
+      // 種類
+      settingsSheet.querySelectorAll('[data-filter-type]').forEach(b => {
+        b.classList.toggle('active', (b.dataset.filterType === 'drinks') === filterDrinkOnly);
+      });
+      // 範囲
+      settingsSheet.querySelectorAll('[data-radius]').forEach(b => {
+        b.classList.toggle('active', Number(b.dataset.radius) === SEARCH_RADIUS_M);
+      });
+      // 古いデータ除外
+      settingsSheet.querySelector('[data-stale-toggle]')?.classList.toggle('active', hideStale);
+      // コンパス
+      compassToggle?.classList.toggle('active', compassActive);
+      // テーマ
+      const themeChoice = getStoredTheme();
+      settingsSheet.querySelectorAll('[data-theme-choice]').forEach(b => {
+        b.classList.toggle('active', b.dataset.themeChoice === themeChoice);
+      });
+      // 言語
+      settingsSheet.querySelectorAll('[data-lang-choice]').forEach(b => {
+        b.classList.toggle('active', b.dataset.langChoice === currentLang);
+      });
+    }
+    function openSettings() {
+      applySettingsState();
+      settingsSheet.classList.add('show');
+      settingsBackdrop.classList.add('show');
+    }
+    function closeSettings() {
+      settingsSheet.classList.remove('show');
+      settingsBackdrop.classList.remove('show');
+    }
+    document.getElementById('btn-settings').addEventListener('click', openSettings);
+    settingsBackdrop.addEventListener('click', closeSettings);
+
+    // テーマ選択
+    settingsSheet.querySelectorAll('[data-theme-choice]').forEach(opt => {
       opt.addEventListener('click', () => {
         setTheme(opt.dataset.themeChoice);
-        setTimeout(closeSheet, 150);
+        applySettingsState();
       });
     });
-    document.querySelectorAll('[data-lang-choice]').forEach(opt => {
+    // 言語選択
+    settingsSheet.querySelectorAll('[data-lang-choice]').forEach(opt => {
       opt.addEventListener('click', () => {
         if (opt.dataset.langChoice !== currentLang) {
           setLang(opt.dataset.langChoice);
@@ -1398,77 +1440,40 @@
           // 動的に生成される表示（カウント、ステータス）を再描画
           renderMarkers();
           renderList();
-          applyFilterButtonUI();
-          applyRadiusUI();
         }
-        setTimeout(closeSheet, 150);
+        applySettingsState();
       });
     });
 
     // === フィルター（種類 + 古いデータ除外） ===
     const FILTER_KEY = 'vendimap-filter';
     const HIDE_STALE_KEY = 'vendimap-hide-stale';
-    const btnFilter = document.getElementById('btn-filter');
-    const filterSheet = document.getElementById('filter-sheet');
-    const filterBackdrop = document.getElementById('filter-backdrop');
     // デフォルトは「飲食のみ」+「古いデータを除外」
     let filterDrinkOnly = (localStorage.getItem(FILTER_KEY) ?? 'true') === 'true';
     let hideStale = (localStorage.getItem(HIDE_STALE_KEY) ?? 'true') === 'true';
 
-    function applyFilterButtonUI() {
-      // ボタン本体には現在の「種類」状態を表示。古いデータ除外フィルターの有無は別アイコンで併記
-      const typeIcon = filterDrinkOnly ? '🥤' : '🏷️';
-      const staleMark = hideStale ? '' : ' ⚠';
-      btnFilter.textContent = `${typeIcon}${staleMark}`;
-      btnFilter.classList.toggle('active', filterDrinkOnly);
-      btnFilter.setAttribute('aria-label', t('ariaFilterStatus', {
-        type: t(filterDrinkOnly ? 'ariaFilterTypeDrinks' : 'ariaFilterTypeAll'),
-        stale: t(hideStale ? 'ariaFilterStaleHide' : 'ariaFilterStaleShow'),
-      }));
-    }
-    applyFilterButtonUI();
-
-    function openFilterSheet() {
-      // 現在の選択状態を反映
-      filterSheet.querySelectorAll('[data-filter-type]').forEach(b => {
-        const ft = b.dataset.filterType;
-        b.classList.toggle('active', (ft === 'drinks') === filterDrinkOnly);
-      });
-      filterSheet.querySelector('[data-stale-toggle]')?.classList.toggle('active', hideStale);
-      filterSheet.classList.add('show');
-      filterBackdrop.classList.add('show');
-    }
-    function closeFilterSheet() {
-      filterSheet.classList.remove('show');
-      filterBackdrop.classList.remove('show');
-    }
-    btnFilter.addEventListener('click', openFilterSheet);
-    filterBackdrop.addEventListener('click', closeFilterSheet);
-
     function commitFilterChange(msg) {
-      applyFilterButtonUI();
+      applySettingsState();
       renderMarkers();
       renderList();
       if (msg) showStatus(msg);
     }
 
-    filterSheet.querySelectorAll('[data-filter-type]').forEach(btn => {
+    settingsSheet.querySelectorAll('[data-filter-type]').forEach(btn => {
       btn.addEventListener('click', () => {
         const next = btn.dataset.filterType === 'drinks';
         if (next !== filterDrinkOnly) {
           filterDrinkOnly = next;
           localStorage.setItem(FILTER_KEY, String(filterDrinkOnly));
           commitFilterChange(t(filterDrinkOnly ? 'statusFilterDrinksOnly' : 'statusFilterAll'));
+        } else {
+          applySettingsState();
         }
-        setTimeout(closeFilterSheet, 120);
       });
     });
-    filterSheet.querySelector('[data-stale-toggle]')?.addEventListener('click', (e) => {
-      e.stopPropagation();
+    settingsSheet.querySelector('[data-stale-toggle]')?.addEventListener('click', () => {
       hideStale = !hideStale;
       localStorage.setItem(HIDE_STALE_KEY, String(hideStale));
-      // シートを開いたまま、現在のチェック状態だけ更新
-      e.currentTarget.classList.toggle('active', hideStale);
       commitFilterChange(t(hideStale ? 'statusHideStale' : 'statusShowStale'));
     });
 
@@ -1562,39 +1567,26 @@
     // === 検索範囲 ===
     const RADIUS_KEY = 'vendimap-radius';
     let SEARCH_RADIUS_M = Number(localStorage.getItem(RADIUS_KEY)) || 1000;
-    const btnRadius = document.getElementById('btn-radius');
-    const radiusSheet = document.getElementById('radius-sheet');
-    const radiusBackdrop = document.getElementById('radius-backdrop');
 
     function radiusLabel(m) {
       return m >= 1000 ? `${m/1000}km` : `${m}m`;
     }
-    function applyRadiusUI() {
-      btnRadius.textContent = `📍 ${radiusLabel(SEARCH_RADIUS_M)}`;
-      btnRadius.setAttribute('aria-label', `${t('ariaBtnRadius')}: ${radiusLabel(SEARCH_RADIUS_M)}`);
-      document.querySelectorAll('[data-radius]').forEach(opt => {
-        opt.classList.toggle('active', Number(opt.dataset.radius) === SEARCH_RADIUS_M);
-      });
-    }
-    applyRadiusUI();
 
-    function openRadiusSheet() { radiusSheet.classList.add('show'); radiusBackdrop.classList.add('show'); }
-    function closeRadiusSheet() { radiusSheet.classList.remove('show'); radiusBackdrop.classList.remove('show'); }
-    btnRadius.addEventListener('click', openRadiusSheet);
-    radiusBackdrop.addEventListener('click', closeRadiusSheet);
-    document.querySelectorAll('[data-radius]').forEach(opt => {
+    settingsSheet.querySelectorAll('[data-radius]').forEach(opt => {
       opt.addEventListener('click', () => {
-        SEARCH_RADIUS_M = Number(opt.dataset.radius);
-        localStorage.setItem(RADIUS_KEY, String(SEARCH_RADIUS_M));
-        applyRadiusUI();
-        showStatus(t('statusRadiusChanged', { r: radiusLabel(SEARCH_RADIUS_M) }));
-        setTimeout(closeRadiusSheet, 150);
-        // 現在地が分かっていればそこから、無ければ地図中心から再検索
-        if (currentPos) {
-          triggerSearch(currentPos.lat, currentPos.lng);
-        } else {
-          triggerSearch();
+        const next = Number(opt.dataset.radius);
+        if (next !== SEARCH_RADIUS_M) {
+          SEARCH_RADIUS_M = next;
+          localStorage.setItem(RADIUS_KEY, String(SEARCH_RADIUS_M));
+          showStatus(t('statusRadiusChanged', { r: radiusLabel(SEARCH_RADIUS_M) }));
+          // 現在地が分かっていればそこから、無ければ地図中心から再検索
+          if (currentPos) {
+            triggerSearch(currentPos.lat, currentPos.lng);
+          } else {
+            triggerSearch();
+          }
         }
+        applySettingsState();
       });
     });
 
@@ -1735,7 +1727,7 @@
     let currentHeading = null;        // 0-360 度
     let compassActive = false;
     let orientationHandler = null;
-    const btnCompass = document.getElementById('btn-compass');
+    const compassToggle = document.getElementById('compass-toggle');
 
     function updateHeadingUI() {
       const wrap = document.querySelector('.me-wrap');
@@ -1794,17 +1786,17 @@
       updateHeadingUI();
     }
 
-    btnCompass.addEventListener('click', async () => {
+    compassToggle.addEventListener('click', async () => {
       if (compassActive) {
         stopCompass();
         compassActive = false;
-        btnCompass.classList.remove('active');
+        compassToggle.classList.remove('active');
         showStatus(t('statusCompassOff'));
       } else {
         const ok = await startCompass();
         if (ok) {
           compassActive = true;
-          btnCompass.classList.add('active');
+          compassToggle.classList.add('active');
           showStatus(t('statusCompassOn'));
         }
       }
