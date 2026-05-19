@@ -619,7 +619,10 @@
       cursor: pointer;
       display: flex; align-items: center; justify-content: center;
       transition: background 0.15s, transform 0.1s;
+      text-decoration: none;
     }
+    a.popup-action-btn { color: var(--text); }
+    a.popup-action-btn:hover { color: var(--text); }
     .popup-action-btn:active { transform: scale(0.92); }
     .popup-action-btn.fav-on {
       background: #ffd60a;
@@ -1846,6 +1849,14 @@
             </button>
             <button class="popup-action-btn${favBtnClass}" id="fav-${r.id}" aria-label="お気に入り">${favBtnIcon}</button>
             <button class="popup-action-btn" id="share-${r.id}" aria-label="シェア">📤</button>
+            <a class="popup-action-btn" id="streetview-${r.id}"
+               href="https://www.google.com/maps?layer=c&cbll=${r.lat},${r.lng}"
+               target="_blank" rel="noopener noreferrer"
+               aria-label="ストリートビューで確認" title="ストリートビューで確認">🗺️</a>
+            <a class="popup-action-btn" id="osmedit-${r.id}"
+               href="https://www.openstreetmap.org/edit?node=${r.id}"
+               target="_blank" rel="noopener noreferrer"
+               aria-label="OpenStreetMapで編集" title="OpenStreetMapで編集">✏️</a>
           </div>
           <div class="popup-reports">
             <button class="popup-report-btn${existsActive}" id="report-exists-${r.id}" aria-label="ここに自販機があると報告">✅ ある</button>
@@ -1881,6 +1892,8 @@
         if (shareBtn) {
           shareBtn.addEventListener('click', () => shareVending(r));
         }
+        document.getElementById(`streetview-${r.id}`)?.addEventListener('click', () => trackEvent('open-streetview'));
+        document.getElementById(`osmedit-${r.id}`)?.addEventListener('click', () => trackEvent('open-osm-edit'));
         const onReportClick = (type) => {
           const after = setReport(r, type);
           const action = after ? (type === 'exists' ? '「ある」と報告しました' : '「ない」と報告しました') : '報告を取り消しました';
