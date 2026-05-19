@@ -174,6 +174,11 @@
       font-size: 17px; font-weight: 700; text-align: center;
       padding: 4px 0 12px; letter-spacing: -0.01em;
     }
+    .sheet-section-label {
+      font-size: 12px; font-weight: 600; color: var(--text-dim);
+      padding: 10px 16px 4px; letter-spacing: -0.01em;
+      text-transform: none;
+    }
     .theme-option {
       width: 100%;
       display: flex; align-items: center; gap: 14px;
@@ -806,6 +811,30 @@
     </button>
   </div>
 
+  <!-- フィルターシート -->
+  <div class="sheet-backdrop" id="filter-backdrop"></div>
+  <div class="sheet" id="filter-sheet">
+    <div class="sheet-handle"></div>
+    <div class="sheet-title">表示フィルター</div>
+    <div class="sheet-section-label">種類</div>
+    <button class="theme-option" data-filter-type="drinks">
+      <div class="opt-icon" style="background:var(--vending);color:#fff;">🥤</div>
+      <div class="opt-label">飲食のみ（ドリンク・コーヒー・お菓子・食品）</div>
+      <div class="opt-check">✓</div>
+    </button>
+    <button class="theme-option" data-filter-type="all">
+      <div class="opt-icon" style="background:var(--surface-strong);">🏷️</div>
+      <div class="opt-label">全種類（タバコ・駐車券なども含む）</div>
+      <div class="opt-check">✓</div>
+    </button>
+    <div class="sheet-section-label">データの新しさ</div>
+    <button class="theme-option" data-stale-toggle>
+      <div class="opt-icon" style="background:#ff9500;color:#fff;">⚠</div>
+      <div class="opt-label">古いデータ（8年以上更新なし）を除外</div>
+      <div class="opt-check">✓</div>
+    </button>
+  </div>
+
   <!-- テーマシート -->
   <div class="sheet-backdrop" id="sheet-backdrop"></div>
   <div class="sheet" id="sheet">
@@ -961,24 +990,70 @@
       });
     });
 
-    // === フィルター（飲食のみ or 全部） ===
+    // === フィルター（種類 + 古いデータ除外） ===
     const FILTER_KEY = 'vendimap-filter';
+    const HIDE_STALE_KEY = 'vendimap-hide-stale';
     const btnFilter = document.getElementById('btn-filter');
-    // デフォルトは「飲食のみ」(drinkOnly)
+    const filterSheet = document.getElementById('filter-sheet');
+    const filterBackdrop = document.getElementById('filter-backdrop');
+    // デフォルトは「飲食のみ」+「古いデータを除外」
     let filterDrinkOnly = (localStorage.getItem(FILTER_KEY) ?? 'true') === 'true';
+    let hideStale = (localStorage.getItem(HIDE_STALE_KEY) ?? 'true') === 'true';
 
     function applyFilterButtonUI() {
-      if (filterDrinkOnly) {
-        btnFilter.classList.add('active');
-        btnFilter.textContent = '🥤 飲食';
-        btnFilter.setAttribute('aria-label', '飲食のみ表示中（タップで全表示）');
-      } else {
-        btnFilter.classList.remove('active');
-        btnFilter.textContent = '🏷️ 全て';
-        btnFilter.setAttribute('aria-label', '全表示中（タップで飲食のみ）');
-      }
+      // ボタン本体には現在の「種類」状態を表示。古いデータ除外フィルターの有無は別アイコンで併記
+      const typeIcon = filterDrinkOnly ? '🥤' : '🏷️';
+      const staleMark = hideStale ? '' : ' ⚠';
+      btnFilter.textContent = `${typeIcon}${staleMark}`;
+      btnFilter.classList.toggle('active', filterDrinkOnly);
+      btnFilter.setAttribute('aria-label',
+        `フィルター: ${filterDrinkOnly ? '飲食のみ' : '全種類'}${hideStale ? '・古いデータ除外' : '・全データ表示'}`);
     }
     applyFilterButtonUI();
+
+    function openFilterSheet() {
+      // 現在の選択状態を反映
+      filterSheet.querySelectorAll('[data-filter-type]').forEach(b => {
+        const t = b.dataset.filterType;
+        b.classList.toggle('active', (t === 'drinks') === filterDrinkOnly);
+      });
+      filterSheet.querySelector('[data-stale-toggle]')?.classList.toggle('active', hideStale);
+      filterSheet.classList.add('show');
+      filterBackdrop.classList.add('show');
+    }
+    function closeFilterSheet() {
+      filterSheet.classList.remove('show');
+      filterBackdrop.classList.remove('show');
+    }
+    btnFilter.addEventListener('click', openFilterSheet);
+    filterBackdrop.addEventListener('click', closeFilterSheet);
+
+    function commitFilterChange(msg) {
+      applyFilterButtonUI();
+      renderMarkers();
+      renderList();
+      if (msg) showStatus(msg);
+    }
+
+    filterSheet.querySelectorAll('[data-filter-type]').forEach(btn => {
+      btn.addEventListener('click', () => {
+        const next = btn.dataset.filterType === 'drinks';
+        if (next !== filterDrinkOnly) {
+          filterDrinkOnly = next;
+          localStorage.setItem(FILTER_KEY, String(filterDrinkOnly));
+          commitFilterChange(filterDrinkOnly ? '飲食のみ表示' : '全種類を表示');
+        }
+        setTimeout(closeFilterSheet, 120);
+      });
+    });
+    filterSheet.querySelector('[data-stale-toggle]')?.addEventListener('click', (e) => {
+      e.stopPropagation();
+      hideStale = !hideStale;
+      localStorage.setItem(HIDE_STALE_KEY, String(hideStale));
+      // シートを開いたまま、現在のチェック状態だけ更新
+      e.currentTarget.classList.toggle('active', hideStale);
+      commitFilterChange(hideStale ? '古いデータを除外しました' : '古いデータも表示します');
+    });
 
     // === 起動スプラッシュを一定時間後に閉じる ===
     window.addEventListener('load', () => {
@@ -991,15 +1066,6 @@
     // init内で実体が代入される（スコープ越え用のホルダー）
     let renderMarkers = () => {};
     let renderList = () => {};
-
-    btnFilter.addEventListener('click', () => {
-      filterDrinkOnly = !filterDrinkOnly;
-      localStorage.setItem(FILTER_KEY, String(filterDrinkOnly));
-      applyFilterButtonUI();
-      renderMarkers();
-      renderList();
-      showStatus(filterDrinkOnly ? '飲食のみ表示' : '全種類を表示');
-    });
 
     // === マップビュー（中心・ズーム）の永続化 ===
     const VIEW_KEY = 'vendimap-view-v1';
@@ -1563,7 +1629,10 @@
 
       // フィルター適用後の結果配列を返す
       function filteredResults() {
-        return filterDrinkOnly ? lastResults.filter(r => r.isDrink) : lastResults;
+        let items = lastResults;
+        if (filterDrinkOnly) items = items.filter(r => r.isDrink);
+        if (hideStale) items = items.filter(r => !r.isStale);
+        return items;
       }
 
       // 地図上にマーカーを描画
