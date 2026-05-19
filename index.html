@@ -961,6 +961,29 @@
       showStatus(filterDrinkOnly ? '飲食のみ表示' : '全種類を表示');
     });
 
+    // === マップビュー（中心・ズーム）の永続化 ===
+    const VIEW_KEY = 'vendimap-view-v1';
+    function saveView() {
+      if (!mapRef) return;
+      try {
+        const c = mapRef.getCenter();
+        localStorage.setItem(VIEW_KEY, JSON.stringify({
+          lat: c.lat, lng: c.lng, zoom: mapRef.getZoom(), savedAt: Date.now(),
+        }));
+      } catch {}
+    }
+    function loadView() {
+      try {
+        const raw = localStorage.getItem(VIEW_KEY);
+        if (!raw) return null;
+        const v = JSON.parse(raw);
+        if (typeof v.lat !== 'number' || typeof v.lng !== 'number' || typeof v.zoom !== 'number') return null;
+        return v;
+      } catch {
+        return null;
+      }
+    }
+
     // === 検索範囲 ===
     const RADIUS_KEY = 'vendimap-radius';
     let SEARCH_RADIUS_M = Number(localStorage.getItem(RADIUS_KEY)) || 1000;
@@ -1224,8 +1247,16 @@
       }
       loadingEl.remove();
 
+      const savedView = loadView();
       mapRef = L.map('map', { zoomControl: false, attributionControl: true, maxZoom: 20 })
-        .setView([35.6812, 139.7671], 16);
+        .setView(
+          savedView ? [savedView.lat, savedView.lng] : [35.6812, 139.7671],
+          savedView ? savedView.zoom : 16,
+        );
+
+      // 地図移動・ズーム時にビューを保存
+      mapRef.on('moveend', saveView);
+      mapRef.on('zoomend', saveView);
 
       // MapTiler API キー
       const MAPTILER_KEY = 'dRjXmZ7QOpjJQYwAWs5g';
@@ -1586,7 +1617,13 @@
       // 範囲選択シートからの再検索用
       triggerSearch = searchVending;
 
-      locate();
+      // 起動: 前回ビューがあれば復元して周辺検索、なければ現在地取得から開始
+      if (savedView) {
+        showStatus('前回の位置を表示しています');
+        searchVending(savedView.lat, savedView.lng);
+      } else {
+        locate();
+      }
     }
 
     if (typeof L !== 'undefined') { init(); } else { window.addEventListener('load', init); }
